@@ -1,7 +1,11 @@
 import chrome_setup
 from flask import Flask, request
-import ade
-from uuid import uuid4
+import ade_queue
+import work
+from time import sleep
+import atexit
+import os
+import signal
 
 app = Flask(__name__)
 
@@ -13,11 +17,22 @@ def ade_get_image(id, date):
     :param id: l'identifiant de la ressource
     :param date: la date de la semaine au format AAAAMMJJ
     """
-    ade.switch_date(date)
-    ade.switch_id(id)
-    img = ade.get_edt_image(1920, 1080)
+    w = work.GenerateWeek(ade_id=id, date=date)
+    queue_id = str(w.work_id)
 
+    ade_queue.queueWork.put(w)
+    work_found = False
+    img = None
 
+    while not work_found:
+        for i in range(ade_queue.queueResult.qsize()):
+            work_id, img = ade_queue.queueResult.get(block=True, timeout=None)
+            if str(work_id) == str(queue_id):
+                work_found = True
+                break
+            else:
+                ade_queue.queueResult.put((work_id, img,))
+        sleep(.4)
 
     if img is None:
         return "Timeout", 408
@@ -31,9 +46,8 @@ with app.app_context():
         print("Chrome driver not found, exiting")
         exit(1)
     else:
-        print("Chrome driver found, continuing")
-        chrome_setup.setup_browser()
-        ade.auth()
+        ade_queue.init_workers()
 
 if __name__ == '__main__':
+
     app.run()
