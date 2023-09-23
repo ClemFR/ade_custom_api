@@ -17,19 +17,18 @@ def init_workers():
     if workers_count == 0:
         print("[WARNING] Workers count = 0, no worker will be created")
     for i in range(workers_count):
-        th.Thread(target=thread_init_worker).start()
+        th.Thread(target=thread_init_worker, args=(i,)).start()
 
 
-def thread_init_worker():
+def thread_init_worker(worker_id=0):
     global workers
-    workers.append(Worker())
+    workers.append(Worker(worker_id))
 
 
 def stop_workers():
     for w in workers:
         w.thread_end = True
     for i in range(workers_count):
-        print("Stopping worker " + str(i))
         queueWork.put(work.EndThread())
 
 
@@ -45,13 +44,17 @@ class Worker:
     thr_process: th.Thread
     selected_days = None
 
-    def __init__(self):
+    def __init__(self, worker_id=0):
+        self.worker_id = worker_id
         self.status = "init"
+        print(f"Worker {worker_id} initializing...")
+
         self.driver = chrome_setup.setup_browser()
         ade.auth(self.driver)
 
         self.thr_process = th.Thread(target=self.thread)
         self.thr_process.start()
+        print(f"Worker {worker_id} started !")
 
     def thread(self):
         self.status = "running"
@@ -68,6 +71,7 @@ class Worker:
         except:
             pass
         self.driver = None
+        print(f"Worker {self.worker_id} stopped !")
 
     def process(self, item):
         if isinstance(item, work.EndThread):
