@@ -3,8 +3,6 @@ from flask import Flask, request
 import ade_queue
 import work
 from time import sleep
-import atexit
-import os
 import signal
 
 app = Flask(__name__)
@@ -41,7 +39,18 @@ def ade_get_image(id, date):
         return html_img
 
 
+def receive_signal(signum, stack):
+    print('Received signal', signum)
+    if signum == signal.SIGINT or signum == signal.SIGTERM:
+        print("Stopping workers")
+        ade_queue.stop_workers()
+        ade_queue.wait_workers_end()
+        exit(0)
+
+
 with app.app_context():
+    signal.signal(signal.SIGINT, receive_signal)
+    signal.signal(signal.SIGTERM, receive_signal)
     if chrome_setup.check_driver() is None:
         print("Chrome driver not found, exiting")
         exit(1)

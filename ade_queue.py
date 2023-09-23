@@ -22,11 +22,18 @@ def thread_init_worker():
     global workers
     workers.append(Worker())
 
+
 def stop_workers():
     for w in workers:
         w.thread_end = True
     for i in range(workers_count):
+        print("Stopping worker " + str(i))
         queueWork.put(work.EndThread())
+
+
+def wait_workers_end():
+    for w in workers:
+        w.thr_process.join()
 
 
 class Worker:
@@ -40,12 +47,13 @@ class Worker:
         self.driver = chrome_setup.setup_browser()
         ade.auth(self.driver)
 
-        thr_process = th.Thread(target=self.thread)
-        thr_process.start()
+        self.thr_process = th.Thread(target=self.thread)
+        self.thr_process.start()
 
     def thread(self):
         self.status = "running"
         while not self.thread_end:
+            print("Waiting for work")
             item = queueWork.get(block=True, timeout=None)
             if not self.thread_end:
                 self.process(item)
@@ -53,8 +61,10 @@ class Worker:
             else:
                 break
         self.status = "stopped"
-
-        # self.driver.close()
+        try:
+            self.driver.close()
+        except:
+            pass
         self.driver = None
 
 
