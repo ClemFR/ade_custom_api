@@ -82,3 +82,19 @@ def get_edt_image(driver: webdriver.chrome, width, height):
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
     return img
+
+
+def switch_selected_days(driver: webdriver.chrome, days: list[int, ...] | tuple[int, ...]):
+    """
+    Change les jours sélectionnés sur l'interface de l'ade
+    :param days: les jours à sélectionner
+    """
+    driver.switch_to.new_window(WindowTypes.TAB)
+    # reset des jours sélectionnés
+    driver.get("https://ade-production.ut-capitole.fr/jsp/custom/modules/plannings/pianoDays.jsp?day=-1&reset=true&forceLoad=false")
+    # sélection des jours
+    for day in days:
+        driver.get("https://ade-production.ut-capitole.fr/jsp/custom/modules/plannings/pianoDays.jsp?day=" + str(day))
+
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])

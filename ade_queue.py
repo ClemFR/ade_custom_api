@@ -1,5 +1,7 @@
 import ade as ade
 from queue import Queue
+
+import ade_utils
 import chrome_setup
 import threading as th
 import work as work
@@ -41,6 +43,7 @@ class Worker:
     driver = None
     thread_end = False
     thr_process: th.Thread
+    selected_days = None
 
     def __init__(self):
         self.status = "init"
@@ -53,7 +56,6 @@ class Worker:
     def thread(self):
         self.status = "running"
         while not self.thread_end:
-            print("Waiting for work")
             item = queueWork.get(block=True, timeout=None)
             if not self.thread_end:
                 self.process(item)
@@ -67,15 +69,31 @@ class Worker:
             pass
         self.driver = None
 
-
     def process(self, item):
         if isinstance(item, work.EndThread):
             self.thread_end = True
+
         elif isinstance(item, work.GenerateWeek):
             item: work.GenerateWeek  # Autocomplétion IDE
             ade.switch_week_date(self.driver, item.date)
+
+            if self.selected_days != (0, 1, 2, 3, 4,):
+                self.selected_days = (0, 1, 2, 3, 4,)
+                ade.switch_selected_days(self.driver, (0, 1, 2, 3, 4,))
+
             ade.switch_id(self.driver, item.ade_id)
             img = ade.get_edt_image(self.driver, item.width, item.height)
             queueResult.put((item.work_id, img,))
 
+        elif isinstance(item, work.GenerateDay):
+            item: work.GenerateDay  # Autocomplétion IDE
+            ade.switch_week_date(self.driver, item.date)
+            day_id = (ade_utils.calculate_day_id(item.date),)
 
+            if self.selected_days != day_id:
+                self.selected_days = day_id
+                ade.switch_selected_days(self.driver, day_id)
+
+            ade.switch_id(self.driver, item.ade_id)
+            img = ade.get_edt_image(self.driver, item.width, item.height)
+            queueResult.put((item.work_id, img,))

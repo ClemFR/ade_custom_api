@@ -9,28 +9,43 @@ app = Flask(__name__)
 
 
 @app.route('/week/image/<id>/<date>')
-def ade_get_image(id, date):
+def ade_get_week_image(id, date):
     """
     Renvoie l'image de l'edt pour la ressource id à la date date
     :param id: l'identifiant de la ressource
     :param date: la date de la semaine au format AAAAMMJJ
     """
-    w = work.GenerateWeek(ade_id=id, date=date)
+
+    width = request.args.get('width') or 1280
+    height = request.args.get('height') or 720
+
+    w = work.GenerateWeek(ade_id=id, date=date, width=width, height=height)
     queue_id = str(w.work_id)
 
     ade_queue.queueWork.put(w)
-    work_found = False
-    img = None
+    _, img = work.wait_for_work_done(queue_id)
 
-    while not work_found:
-        for i in range(ade_queue.queueResult.qsize()):
-            work_id, img = ade_queue.queueResult.get(block=True, timeout=None)
-            if str(work_id) == str(queue_id):
-                work_found = True
-                break
-            else:
-                ade_queue.queueResult.put((work_id, img,))
-        sleep(.4)
+    if img is None:
+        return "Timeout", 408
+    else:
+        html_img = f"<img src='{img}'/>"
+        return html_img
+
+@app.route('/day/image/<id>/<date>')
+def ade_get_day_image(id, date):
+    """
+    Renvoie l'image de l'edt pour la ressource id à la date date
+    :param id: l'identifiant de la ressource
+    :param date: la date du jour au format AAAAMMJJ
+    """
+    width = request.args.get('width') or 400
+    height = request.args.get('height') or 720
+
+    w = work.GenerateDay(ade_id=id, date=date, width=width, height=height)
+    queue_id = str(w.work_id)
+
+    ade_queue.queueWork.put(w)
+    _, img = work.wait_for_work_done(queue_id)
 
     if img is None:
         return "Timeout", 408
