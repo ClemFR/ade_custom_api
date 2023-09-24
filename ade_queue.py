@@ -6,11 +6,13 @@ import chrome_setup
 import threading as th
 import work as work
 
+import settings
+
 queueWork = Queue()
 queueResult = Queue()
 
 workers = []
-workers_count = 1
+workers_count = int(settings.getenv("WORKERS_COUNT")) or 1
 
 
 def init_workers():

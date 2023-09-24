@@ -1,18 +1,18 @@
-import chromedriver_autoinstaller as cdai
 import selenium.webdriver as webdriver
 from selenium_stealth import stealth
-
-
-def check_driver():
-    print("Checking for chrome driver...")
-    cdai.install()
-    return cdai.get_chrome_version()
+import settings
 
 
 def setup_browser():
     options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
     options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+
+    if settings.env.get("CHROME_HEADLESS") == "true":
+        options.add_argument("--headless")
+
+    if settings.env.get("CHROME_BINARY") is not None and settings.env.get("CHROME_BINARY") != "":
+        options.binary_location = settings.env["CHROME_BINARY"]
 
     driver = webdriver.Chrome(options=options)
 

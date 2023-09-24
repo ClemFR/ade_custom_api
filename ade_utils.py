@@ -1,6 +1,7 @@
 from datetime import datetime
+import settings
 
-ade_start_date = datetime.strptime("20230821", "%Y%m%d")
+ade_start_date = datetime.strptime(settings.env.get("ADE_START_DATE"), "%Y%m%d")
 
 
 def calculate_week(date: str):

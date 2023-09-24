@@ -1,9 +1,11 @@
-import chrome_setup
 from flask import Flask, request
 from waitress import serve
 import ade_queue
 import work
 import signal
+import settings
+import os
+
 
 def create_app():
     app = Flask(__name__)
@@ -11,12 +13,14 @@ def create_app():
     with app.app_context():
         signal.signal(signal.SIGINT, receive_signal)
         signal.signal(signal.SIGTERM, receive_signal)
-        if chrome_setup.check_driver() is None:
-            print("Chrome driver not found, exiting")
-            exit(1)
-        else:
-            print("Chrome driver found, starting workers")
-            ade_queue.init_workers()
+
+        if settings.getenv("ADE_URL") is None or settings.getenv("ADE_URL") == "":
+            raise Exception("ADE_URL not set")
+
+        if settings.getenv("CHROME_DRIVER") is not None and settings.getenv("CHROME_DRIVER") != "":
+            os.environ = settings.getenv("CHROME_DRIVER") + ":" + os.environ
+
+        ade_queue.init_workers()
 
     @app.route('/week/image/<id>/<date>')
     def ade_get_week_image(id, date):
@@ -79,7 +83,7 @@ def receive_signal(signum, stack):
 
 if __name__ == '__main__':
 
-    app_mode = "prod"
+    app_mode = settings.getenv("APP_MODE") or "prod"
     # app_mode = "dev"
 
     if app_mode == "prod":
