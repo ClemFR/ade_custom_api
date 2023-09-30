@@ -1,0 +1,30 @@
+services:
+  seleniarm:
+    image: seleniarm/standalone-chromium:latest
+    container_name: seleniarm-test
+    environment:
+      - SE_NODE_MAX_SESSIONS=99
+    shm_size: 2gb
+    networks:
+      custom_network:
+        ipv4_address: 172.16.238.10
+
+
+  python-scrapper:
+    build: .
+    container_name: python-scrapper
+    depends_on:
+      - seleniarm
+    env_file:
+      - .env
+    networks:
+        custom_network:
+            ipv4_address: 172.16.238.11
+
+networks:
+  custom_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.238.0/24
+

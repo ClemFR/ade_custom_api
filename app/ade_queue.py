@@ -6,16 +6,21 @@ import chrome_setup
 import threading as th
 import work as work
 
-import settings
+from time import sleep
+
+import os
 
 queueWork = Queue()
 queueResult = Queue()
 
 workers = []
-workers_count = int(settings.getenv("WORKERS_COUNT")) or 1
+workers_count = 0
 
 
 def init_workers():
+    global workers_count
+    workers_count = int(os.environ.get('WORKERS_COUNT', 1))
+
     if workers_count == 0:
         print("[WARNING] Workers count = 0, no worker will be created")
     for i in range(workers_count):

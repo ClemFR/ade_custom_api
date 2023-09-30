@@ -1,9 +1,9 @@
+import chrome_setup
 from flask import Flask, request
 from waitress import serve
 import ade_queue
 import work
 import signal
-import settings
 import os
 
 
@@ -13,12 +13,6 @@ def create_app():
     with app.app_context():
         signal.signal(signal.SIGINT, receive_signal)
         signal.signal(signal.SIGTERM, receive_signal)
-
-        if settings.getenv("ADE_URL") is None or settings.getenv("ADE_URL") == "":
-            raise Exception("ADE_URL not set")
-
-        if settings.getenv("CHROME_DRIVER") is not None and settings.getenv("CHROME_DRIVER") != "":
-            os.environ = settings.getenv("CHROME_DRIVER") + ":" + os.environ
 
         ade_queue.init_workers()
 
@@ -70,8 +64,6 @@ def create_app():
     return app
 
 
-
-
 def receive_signal(signum, stack):
     print('Received signal', signal.Signals(signum).name)
     if signum == signal.SIGINT or signum == signal.SIGTERM:
@@ -81,13 +73,33 @@ def receive_signal(signum, stack):
         exit(0)
 
 
+def validate_settings():
+    SETTINGS_LIST = [
+        "SELENIUM_HOST",
+        "SELENIUM_PORT",
+        "ADE_JSP_URL",
+        "ADE_LOGIN",
+        "ADE_PASSWORD",
+        "ADE_YEAR_ID",
+        "ADE_START_DATE",
+        "APP_MODE",
+        "WORKERS_COUNT",
+    ]
+
+    for setting in SETTINGS_LIST:
+        if setting not in os.environ:
+            print(f"Missing setting {setting} in environment variables")
+            exit(1)
+
+
 if __name__ == '__main__':
 
-    app_mode = settings.getenv("APP_MODE") or "prod"
-    # app_mode = "dev"
+    validate_settings()
+
+    app_mode = os.environ.get('APP_MODE', 'prod')
 
     if app_mode == "prod":
         serve(create_app(), host='0.0.0.0', port=5000)
     else:
         app = create_app()
-        app.run()
+        app.run(host='0.0.0.0')
