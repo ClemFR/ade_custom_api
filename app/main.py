@@ -36,8 +36,7 @@ def create_app():
         if img is None:
             return "Timeout", 408
         else:
-            html_img = f"<img src='{img}'/>"
-            return html_img
+            return img
 
     @app.route('/day/image/<id>/<date>')
     def ade_get_day_image(id, date):
@@ -58,8 +57,7 @@ def create_app():
         if img is None:
             return "Timeout", 408
         else:
-            html_img = f"<img src='{img}'/>"
-            return html_img
+            return img
 
     return app
 
