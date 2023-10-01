@@ -4,6 +4,7 @@ services:
     container_name: seleniarm-test
     environment:
       - SE_NODE_MAX_SESSIONS=99
+      - SE_NODE_SESSION_TIMEOUT=63072000 # 2 years
     shm_size: 2gb
     networks:
       custom_network:
