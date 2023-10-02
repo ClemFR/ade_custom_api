@@ -83,8 +83,11 @@ class Worker:
     def process(self, item):
         if isinstance(item, work.EndThread):
             self.thread_end = True
+            return
 
-        elif isinstance(item, work.GenerateWeek):
+        ade.test_driver_cnx(self.driver)  # Vérifie si le token ade est toujours valide
+
+        if isinstance(item, work.GenerateWeek):
             item: work.GenerateWeek  # Autocomplétion IDE
             ade.switch_week_date(self.driver, item.date)
 

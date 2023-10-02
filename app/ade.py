@@ -40,6 +40,17 @@ def auth(driver: webdriver.Chrome):
     driver.get(f"{ade_url}/standard/gui/interface.jsp")
 
 
+def test_driver_cnx(driver: webdriver.Chrome):
+    """
+    Teste si le token de connexion est toujours valide
+    Si déconnecté, reconnecte le driver
+    """
+    ade_url = get_ade_url()
+    driver.get(f"{ade_url}/standard/gui/interface.jsp")
+    if driver.current_url == f"{ade_url}/standard/index.jsp":
+        auth(driver)
+
+
 def switch_week_date(driver: webdriver.Chrome, date):
     """
     Change la semaine séletionnée sur l'interface de l'ade
