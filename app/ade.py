@@ -40,7 +40,7 @@ def auth(driver: webdriver.Chrome):
     driver.get(f"{ade_url}/standard/gui/interface.jsp")
 
 
-def test_driver_cnx(driver: webdriver.Chrome):
+def test_driver_cnx(driver: webdriver.Chrome) -> bool:
     """
     Teste si le token de connexion est toujours valide
     Si déconnecté, reconnecte le driver
@@ -48,7 +48,8 @@ def test_driver_cnx(driver: webdriver.Chrome):
     ade_url = get_ade_url()
     driver.get(f"{ade_url}/standard/gui/interface.jsp")
     if driver.current_url == f"{ade_url}/standard/index.jsp":
-        auth(driver)
+        return False
+    return True
 
 
 def switch_week_date(driver: webdriver.Chrome, date):

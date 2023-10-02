@@ -6,8 +6,6 @@ import chrome_setup
 import threading as th
 import work as work
 
-from time import sleep
-
 import os
 
 queueWork = Queue()
@@ -51,6 +49,7 @@ class Worker:
     thr_process: th.Thread
     selected_days = None
     selected_week = None
+    selected_id = None
 
     def __init__(self, worker_id=0):
         self.worker_id = worker_id
@@ -87,7 +86,14 @@ class Worker:
             return
 
         # Le travail n'est pas un travail de fin de thread
-        ade.test_driver_cnx(self.driver)  # Vérifie si le token ade est toujours valide
+        if not ade.test_driver_cnx(self.driver):  # Vérifie si le token ade est toujours valide, sinon reconnecte
+            ade.auth(self.driver)
+            # reset selected days, week, and id
+            self.selected_days = None
+            self.selected_week = None
+            self.selected_id = None
+
+
 
         ###############################################
         #             GENERATION SEMAINES             #
@@ -102,7 +108,10 @@ class Worker:
                 self.selected_days = (0, 1, 2, 3, 4,)
                 ade.switch_selected_days(self.driver, (0, 1, 2, 3, 4,))
 
-            ade.switch_id(self.driver, item.ade_id)
+            if self.selected_id != item.ade_id:
+                self.selected_id = item.ade_id
+                ade.switch_id(self.driver, item.ade_id)
+
             img = ade.get_edt_image(self.driver, item.width, item.height)
             queueResult.put((item.work_id, img,))
 
@@ -121,6 +130,9 @@ class Worker:
                 self.selected_days = day_id
                 ade.switch_selected_days(self.driver, day_id)
 
-            ade.switch_id(self.driver, item.ade_id)
+            if self.selected_id != item.ade_id:
+                self.selected_id = item.ade_id
+                ade.switch_id(self.driver, item.ade_id)
+
             img = ade.get_edt_image(self.driver, item.width, item.height)
             queueResult.put((item.work_id, img,))

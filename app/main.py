@@ -1,4 +1,3 @@
-import chrome_setup
 from flask import Flask, request
 from waitress import serve
 import ade_queue
