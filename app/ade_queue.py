@@ -50,6 +50,7 @@ class Worker:
     thread_end = False
     thr_process: th.Thread
     selected_days = None
+    selected_week = None
 
     def __init__(self, worker_id=0):
         self.worker_id = worker_id
@@ -85,11 +86,17 @@ class Worker:
             self.thread_end = True
             return
 
+        # Le travail n'est pas un travail de fin de thread
         ade.test_driver_cnx(self.driver)  # Vérifie si le token ade est toujours valide
 
+        ###############################################
+        #             GENERATION SEMAINES             #
+        ###############################################
         if isinstance(item, work.GenerateWeek):
             item: work.GenerateWeek  # Autocomplétion IDE
-            ade.switch_week_date(self.driver, item.date)
+            if self.selected_week != ade_utils.calculate_week(item.date):
+                self.selected_week = ade_utils.calculate_week(item.date)
+                ade.switch_week_date(self.driver, item.date)
 
             if self.selected_days != (0, 1, 2, 3, 4,):
                 self.selected_days = (0, 1, 2, 3, 4,)
@@ -99,9 +106,15 @@ class Worker:
             img = ade.get_edt_image(self.driver, item.width, item.height)
             queueResult.put((item.work_id, img,))
 
+        ###############################################
+        #              GENERATION JOURS               #
+        ###############################################
         elif isinstance(item, work.GenerateDay):
             item: work.GenerateDay  # Autocomplétion IDE
-            ade.switch_week_date(self.driver, item.date)
+            if self.selected_week != ade_utils.calculate_week(item.date):
+                self.selected_week = ade_utils.calculate_week(item.date)
+                ade.switch_week_date(self.driver, item.date)
+
             day_id = (ade_utils.calculate_day_id(item.date),)
 
             if self.selected_days != day_id:
