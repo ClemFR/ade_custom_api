@@ -47,7 +47,7 @@ def test_driver_cnx(driver: webdriver.Chrome) -> bool:
     """
     ade_url = get_ade_url()
     driver.get(f"{ade_url}/standard/gui/interface.jsp")
-    if driver.current_url == f"{ade_url}/standard/index.jsp":
+    if driver.current_url != f"{ade_url}/standard/gui/interface.jsp":
         return False
     return True
 
