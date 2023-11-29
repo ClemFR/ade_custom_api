@@ -3,6 +3,7 @@ from datetime import datetime
 
 ade_start_date = None
 
+
 def calculate_week(date: str):
     global ade_start_date
     if ade_start_date is None:

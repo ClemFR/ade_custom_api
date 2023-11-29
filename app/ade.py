@@ -45,11 +45,21 @@ def test_driver_cnx(driver: webdriver.Chrome) -> bool:
     Teste si le token de connexion est toujours valide
     Si déconnecté, reconnecte le driver
     """
+    print("Testing driver connexion")
     ade_url = get_ade_url()
+
+    # Open new tab
+    driver.switch_to.new_window(WindowTypes.TAB)
+    # Test if connected
     driver.get(f"{ade_url}/standard/gui/interface.jsp")
-    if driver.current_url != f"{ade_url}/standard/gui/interface.jsp":
-        return False
-    return True
+    connexion_ok = driver.current_url == f"{ade_url}/standard/gui/interface.jsp"
+    # close tab
+    driver.close()
+    # switch to main tab
+    driver.switch_to.window(driver.window_handles[0])
+
+    print(("Connexion ok" if connexion_ok else "Connexion lost") + " to ade")
+    return connexion_ok
 
 
 def switch_week_date(driver: webdriver.Chrome, date):
