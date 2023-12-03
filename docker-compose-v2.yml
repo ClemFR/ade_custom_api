@@ -1,0 +1,48 @@
+services:
+  ade-seleniarm:
+    image: seleniarm/standalone-firefox:latest
+    container_name: ade-seleniarm
+    environment:
+      - SE_NODE_MAX_SESSIONS=99
+      - SE_NODE_SESSION_TIMEOUT=63072000 # 2 years
+      - VNC_NO_PASSWORD=1
+      - SE_OPTS=--enable-managed-downloads true
+    shm_size: 2gb
+    networks:
+      custom_network:
+        ipv4_address: 172.16.238.10
+
+  ade-mongodb:
+    image: mongo:latest
+    container_name: ade-mongodb
+    networks:
+      custom_network:
+        ipv4_address: 172.16.238.12
+
+  ade-python-parser:
+    build: ade_parser/.
+    container_name: ade-python-parser
+    depends_on:
+      - ade-mongodb
+      - ade-seleniarm
+    environment:
+      - SELENIUM_HOST=172.16.238.10
+      - SELENIUM_PORT=4444
+      - DATABASE_HOST=172.16.238.12
+      - DATABASE_PORT=27017
+      - ADE_URL=https://ade-production.ut-capitole.fr/direct/index.jsp?showTree=true&showPianoDays=true&showPianoWeeks=true&days=0,1,2,3,4,&displayConfName=Web&login=anonymousiut&projectId=32
+      - EXPOSE_PORT=5000
+    networks:
+        custom_network:
+            ipv4_address: 172.16.238.2
+
+networks:
+  custom_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.238.0/24
+
+volumes:
+  ade-downloaded-ics:
+    name: ade-downloaded-ics
