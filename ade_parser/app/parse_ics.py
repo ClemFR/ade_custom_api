@@ -2,6 +2,7 @@ from ics import Calendar
 from pymongo import MongoClient
 import os
 from datetime import datetime
+import re
 
 client: None | MongoClient = None
 
@@ -29,11 +30,24 @@ def parse_file(filename):
         c = Calendar(my_file.read())
 
     db = mongo_connect()
-    col = db[col_name]  # Ex : B3INFOTPA2
+    # col = db[col_name]  # Ex : B3INFOTPA2
+    col = db["schedules"]
 
     for e in c.events:
+        # regex match profs : ([a-zA-Z\-]* [a-zA-Z\-]*)
+        # regex match groupes : [a-zA-Z][0-9][a-zA-Z]*[0-9]*
+        # regex retirer heure génération ics : \\(Exporté le:([0-9]{2}\\/){2}[0-9]{4} [0-9]{2}:[0-9]{2}\\)
+
+        e.description = re.sub("\\(Exporté le:([0-9]{2}\\/){2}[0-9]{4} [0-9]{2}:[0-9]{2}\\)", "", e.description)
+        e.description = e.description.strip()
+
+        profs = re.findall(r"([a-zA-Z\-]+ [a-zA-Z\-]+)", e.description)
+        groupes = re.findall(r"[a-zA-Z][0-9][a-zA-Z]*[0-9]*", e.description)
+
         elem = {
             "summary": e.name,
+            "teachers": profs,
+            "group": groupes,
             "description": e.description,
             "location": e.location,
             "start": datetime.fromisoformat(e.begin.isoformat()),
