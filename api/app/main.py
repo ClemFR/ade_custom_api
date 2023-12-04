@@ -1,9 +1,13 @@
 from flask import Flask, request
 from waitress import serve
-import ade_queue
-import work
 import signal
 import os
+
+
+def receive_signal(signum, stack):
+    print('Received signal', signal.Signals(signum).name)
+    if signum == signal.SIGINT or signum == signal.SIGTERM:
+        exit(0)
 
 
 def create_app():
@@ -13,74 +17,54 @@ def create_app():
         signal.signal(signal.SIGINT, receive_signal)
         signal.signal(signal.SIGTERM, receive_signal)
 
-        ade_queue.init_workers()
+        @app.route("/week/<promo_id>/<day>")
+        def get_week(promo_id, day):
+            """
+            Get entire week for the specified promotion
+            :param promo_id: The promotion (Ex : B3INFOTPA2)
+            :param day: A day in the week (format AAAAMMJJ)
+            :return: Json array representing the schedule.
+            """
+            pass
 
-    @app.route('/week/image/<id>/<date>')
-    def ade_get_week_image(id, date):
-        """
-        Renvoie l'image de l'edt pour la ressource id à la date date
-        :param id: l'identifiant de la ressource
-        :param date: la date de la semaine au format AAAAMMJJ
-        """
+        @app.route("/day/<promo_id>/<day>")
+        def get_day(promo_id, day):
+            """
+            Get specific day for the specified promotion
+            :param promo_id: The promotion (Ex : B3INFOTPA2)
+            :param day: A day in the week (format AAAAMMJJ)
+            :return: Json array representing the schedule.
+            """
+            pass
 
-        width = request.args.get('width') or 1280
-        height = request.args.get('height') or 720
+        @app.route("/teacher/<name>/<day>")
+        def get_teacher_schedule(name, day):
+            """
+            Get the schedule for the specified teacher
+            :param name: The name of the teacher to get the schedule
+            :param day: A day in the week (format AAAAMMJJ)
+            :return: Json array representing the schedule.
+            """
+            pass
 
-        w = work.GenerateWeek(ade_id=id, date=date, width=width, height=height)
-        queue_id = str(w.work_id)
-
-        ade_queue.queueWork.put(w)
-        _, img = work.wait_for_work_done(queue_id)
-
-        if img is None:
-            return "Timeout", 408
-        else:
-            return img
-
-    @app.route('/day/image/<id>/<date>')
-    def ade_get_day_image(id, date):
-        """
-        Renvoie l'image de l'edt pour la ressource id à la date date
-        :param id: l'identifiant de la ressource
-        :param date: la date du jour au format AAAAMMJJ
-        """
-        width = request.args.get('width') or 400
-        height = request.args.get('height') or 720
-
-        w = work.GenerateDay(ade_id=id, date=date, width=width, height=height)
-        queue_id = str(w.work_id)
-
-        ade_queue.queueWork.put(w)
-        _, img = work.wait_for_work_done(queue_id)
-
-        if img is None:
-            return "Timeout", 408
-        else:
-            return img
+        @app.route("/room/<name>/<day>")
+        def get_room_schedule(name, day):
+            """
+            Get the schedule for the specified room
+            :param name: The name of the room to get the schedule
+            :param day: A day in the week (format AAAAMMJJ)
+            :return: Json array representing the schedule.
+            """
+            pass
 
     return app
 
 
-def receive_signal(signum, stack):
-    print('Received signal', signal.Signals(signum).name)
-    if signum == signal.SIGINT or signum == signal.SIGTERM:
-        print("Stopping workers")
-        ade_queue.stop_workers()
-        ade_queue.wait_workers_end()
-        exit(0)
-
-
 def validate_settings():
     SETTINGS_LIST = [
-        "SELENIUM_HOST",
-        "SELENIUM_PORT",
-        "ADE_JSP_URL",
-        "ADE_LOGIN",
-        "ADE_PASSWORD",
-        "ADE_YEAR_ID",
-        "ADE_START_DATE",
-        "APP_MODE",
-        "WORKERS_COUNT",
+        "DATABASE_HOST",
+        "DATABASE_PORT",
+        "APP_MODE"
     ]
 
     for setting in SETTINGS_LIST:
