@@ -33,6 +33,13 @@ services:
         custom_network:
             ipv4_address: 172.16.238.11
 
+  ade-mongodb:
+    image: mongo:latest
+    container_name: ade-mongodb
+    networks:
+      custom_network:
+        ipv4_address: 172.16.238.12
+
 networks:
   custom_network:
     ipam:
