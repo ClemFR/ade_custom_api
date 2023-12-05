@@ -11,7 +11,6 @@ def mongo_connect():
     global client
     if client is None:
         client = MongoClient(os.environ["DATABASE_HOST"], int(os.environ["DATABASE_PORT"]))
-
     db = client.ade
     return db
 
@@ -21,10 +20,10 @@ def parse_file(filename):
     updated = 0
 
     # get file name
-    col_name = os.path.basename(filename)
+    current_group = os.path.basename(filename)
 
     # remove extension
-    col_name = os.path.splitext(col_name)[0]
+    current_group = os.path.splitext(current_group)[0]
 
     with open(filename, 'r') as my_file:
         c = Calendar(my_file.read())
@@ -44,6 +43,11 @@ def parse_file(filename):
         profs = re.findall(r"([a-zA-Z\-]+ [a-zA-Z\-]+)", e.description)
         groupes = re.findall(r"[a-zA-Z][0-9][a-zA-Z]*[0-9]*", e.description)
 
+        # On regarde si le groupe actuel est dans la liste des groupes
+        # Fix bug quand un cours ets en CM / TD et que les groupes de TP n'apparaissent pas dans la description
+        if current_group not in groupes:
+            groupes.append(current_group)
+
         elem = {
             "summary": e.name,
             "teachers": profs,
@@ -62,7 +66,17 @@ def parse_file(filename):
             col.insert_one(elem)
             inserted += 1
         else:
-            # update
+            # On préserve les groupes déjà présents dans la base de données
+            current_groups_db = find_elem["group"]
+
+            # On ajoute les groupes du cours actuel
+            for g in groupes:
+                if g not in current_groups_db:
+                    current_groups_db.append(g)
+
+            elem["group"] = current_groups_db
+
+            # Update
             col.update_one({"_id": e.uid}, {"$set": elem})
             updated += 1
 
