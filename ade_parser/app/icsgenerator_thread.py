@@ -58,10 +58,11 @@ class IcsGenerator:
 
             print(f"[IcsGenerator-{id}] Generating ics for {category_path} from {date_debut} to {date_fin} ...")
 
+            libelle_groupe = category_path.split(">")[-1]
             ics_filepath = get_ics_file(category_path, date_debut, date_fin)
 
             # set filename to the last part of the path separated by >
-            filename = category_path.split(">")[-1] + ".ics"
+            filename = libelle_groupe + ".ics"
 
             # on renomme le fichier pour que le parser conaisse la collection à affecter (ex : B3INFOTPA2.ics)
             dst = os.path.join(os.path.dirname(ics_filepath), filename)
@@ -69,4 +70,4 @@ class IcsGenerator:
 
             print(f"[IcsGenerator-{id}] Ics generated for {category_path} from {date_debut} to {date_fin} !")
             print(f"[IcsGenerator-{id}] Parsing {filename} ...")
-            self.parser.queueWork.put(icsparser_thread.ParseWork(dst))
+            self.parser.queueWork.put(icsparser_thread.ParseWork(dst, libelle_groupe, date_debut, date_fin))
