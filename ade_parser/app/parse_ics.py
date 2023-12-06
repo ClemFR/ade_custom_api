@@ -3,8 +3,13 @@ from pymongo import MongoClient
 import os
 from datetime import datetime
 import re
+from uuid import uuid4
 
 client: None | MongoClient = None
+
+
+def YYYYMMDD_to_datetime(date):
+    return datetime(int(date[:4]), int(date[4:6]), int(date[6:8]), 0, 0, 0)
 
 
 def mongo_connect():
@@ -15,22 +20,32 @@ def mongo_connect():
     return db
 
 
-def parse_file(filename):
+def parse_file(ics_path, group_name, start_date, end_date):
+    ID_PROCESS = str(uuid4())
+    print(f"Updating : {group_name} from {start_date} to {end_date} with id {ID_PROCESS}")
+
     inserted = 0
     updated = 0
+    deleted = 0
 
-    # get file name
-    current_group = os.path.basename(filename)
-
-    # remove extension
-    current_group = os.path.splitext(current_group)[0]
-
-    with open(filename, 'r') as my_file:
+    with open(ics_path, 'r') as my_file:
         c = Calendar(my_file.read())
 
     db = mongo_connect()
     # col = db[col_name]  # Ex : B3INFOTPA2
     col = db["schedules"]
+
+    # On flag les anciens cours dans la range de dates avec l'uuid du process
+    col.update_many(
+        {"$and": [
+            {"start": {"$gte": YYYYMMDD_to_datetime(start_date)}},
+            {"end": {"$lte": YYYYMMDD_to_datetime(end_date).replace(hour=23, minute=59, second=59)}},
+            {"tp_groups": {"$in": [group_name]}},
+        ]},
+        {
+            "$set": {"update_process_id": ID_PROCESS}
+        }
+    )
 
     for e in c.events:
         # regex match profs : ([a-zA-Z\-]* [a-zA-Z\-]*)
@@ -41,17 +56,13 @@ def parse_file(filename):
         e.description = e.description.strip()
 
         profs = re.findall(r"([a-zA-Z\-]+ [a-zA-Z\-]+)", e.description)
-        groupes = re.findall(r"[a-zA-Z][0-9][a-zA-Z]*[0-9]*", e.description)
-
-        # On regarde si le groupe actuel est dans la liste des groupes
-        # Fix bug quand un cours ets en CM / TD et que les groupes de TP n'apparaissent pas dans la description
-        if current_group not in groupes:
-            groupes.append(current_group)
+        groupes_ade = re.findall(r"[a-zA-Z][0-9][a-zA-Z]*[0-9]*", e.description)
 
         elem = {
             "summary": e.name,
             "teachers": profs,
-            "group": groupes,
+            "ade_groups": groupes_ade,
+            "tp_groups": [group_name],
             "description": e.description,
             "location": e.location,
             "start": datetime.fromisoformat(e.begin.isoformat()),
@@ -66,18 +77,40 @@ def parse_file(filename):
             col.insert_one(elem)
             inserted += 1
         else:
-            # On préserve les groupes déjà présents dans la base de données
-            current_groups_db = find_elem["group"]
-
-            # On ajoute les groupes du cours actuel
-            for g in groupes:
-                if g not in current_groups_db:
-                    current_groups_db.append(g)
-
-            elem["group"] = current_groups_db
+            # On remets les groupes insérés en BDD dans le document qui va être modifié
+            for g in find_elem["tp_groups"]:
+                if g not in elem["tp_groups"]:
+                    elem["tp_groups"].append(g)
 
             # Update
-            col.update_one({"_id": e.uid}, {"$set": elem})
+            col.update_one({"_id": e.uid}, {"$set": elem, "$unset": {"update_process_id": ""}})
             updated += 1
 
-    return inserted, updated
+    # On récupère les cours qui sont encore flag
+    cursor_cours = col.find({
+        "update_process_id": ID_PROCESS
+    })
+
+    for cour in cursor_cours:
+        deleted += 1
+
+        if len(cour["tp_groups"]) == 1:
+            # Il ne reste que ce groupe dans la liste des TP bind à ce cour, on supprime le cours de la BD
+            col.delete_one({
+                "_id": cour["_id"]
+            })
+
+        else:
+            # On supprime l'ID de groupe dans le cours
+            for i in range(len(cour["tp_groups"])):
+                if cour["tp_groups"][i] == group_name:
+                    cour["tp_groups"].pop(i)
+                    break
+
+            # On retire de cours le champ update_process_id
+            cour.pop("update_process_id")
+
+            # On mets à jour le cours avec le groupe en moins
+            col.update_one({"_id": cour["_id"]}, {"$set": cour, "$unset": {"update_process_id": ""}})
+
+    return inserted, updated, deleted

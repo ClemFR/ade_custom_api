@@ -5,11 +5,11 @@ import os
 
 
 class ParseWork:
-    def __init__(self, ics_path):
+    def __init__(self, ics_path, group, start_date, end_date):
         self.ics_path = ics_path
-
-    def do_work(self):
-        pass
+        self.group = group
+        self.start_date = start_date
+        self.end_date = end_date
 
 
 class ParseStop:
@@ -46,9 +46,12 @@ class IcsParser:
                 break
 
             ics_path = work.ics_path
+            group = work.group
+            start_date = work.start_date
+            end_date = work.end_date
 
             print(f"[IcsParser-{id}] Parsing {ics_path} ...")
-            inserted, updated = parse_file(ics_path)
+            inserted, updated = parse_file(ics_path, group, start_date, end_date)
             print(f"[IcsParser-{id}] Parsing {ics_path} done, {inserted} inserted, {updated} updated !")
 
             os.remove(ics_path)
