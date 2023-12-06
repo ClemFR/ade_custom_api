@@ -13,6 +13,8 @@ ENV SELENIUM_PORT=4444
 ENV DATABASE_HOST=localhost
 ENV DATABASE_PORT=27017
 ENV EXPOSE_PORT=5000
+
+# Fix des prints qui ne s'affichent pas correctement
 ENV PYTHONUNBUFFERED=1
 
 COPY ./app /app

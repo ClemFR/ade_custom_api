@@ -7,22 +7,13 @@ COPY ./app/requirements.txt /app/requirements.txt
 WORKDIR /app
 RUN pip3 install -r requirements.txt
 
-# Informations selenium
-ENV SELENIUM_HOST=localhost
-ENV SELENIUM_PORT=4444
+# Informations mongodb
+ENV DATABASE_HOST=localhost
+ENV DATABASE_PORT=27017
+ENV APP_MODE=prod
 
-# Informations ADE
-ENV ADE_JSP_URL=""
-ENV ADE_LOGIN=""
-ENV ADE_PASSWORD=""
-
-ENV ADE_YEAR_ID=""
-
-# format YYYYMMAA
-ENV ADE_START_DATE=""
-
-ENV APP_MODE=dev
-ENV WORKERS_COUNT=1
+# Fix des prints qui ne s'affichent pas correctement
+ENV PYTHONUNBUFFERED=1
 
 COPY ./app /app
 ENTRYPOINT ["python3", "main.py"]
