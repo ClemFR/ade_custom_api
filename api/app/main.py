@@ -2,6 +2,7 @@ from flask import Flask, request
 from waitress import serve
 import signal
 import os
+import mongo_reqs as mr
 
 
 def receive_signal(signum, stack):
@@ -35,7 +36,9 @@ def create_app():
             :param day: A day in the week (format AAAAMMJJ)
             :return: Json array representing the schedule.
             """
-            pass
+            print("Requete getDay : " + str(promo_id) + " --> " + str(day))
+
+            return mr.get_class_schedule(promo_id, day, day)
 
         @app.route("/teacher/<name>/<day>")
         def get_teacher_schedule(name, day):
@@ -45,7 +48,8 @@ def create_app():
             :param day: A day in the week (format AAAAMMJJ)
             :return: Json array representing the schedule.
             """
-            pass
+
+            return mr.get_teacher_schedule(name, day, day)
 
         @app.route("/room/<name>/<day>")
         def get_room_schedule(name, day):
@@ -55,7 +59,8 @@ def create_app():
             :param day: A day in the week (format AAAAMMJJ)
             :return: Json array representing the schedule.
             """
-            pass
+
+            return mr.get_room_schedule(name, day, day)
 
     return app
 
@@ -64,13 +69,16 @@ def validate_settings():
     SETTINGS_LIST = [
         "DATABASE_HOST",
         "DATABASE_PORT",
-        "APP_MODE"
+        "APP_MODE",
+        "EXPOSE_PORT"
     ]
 
     for setting in SETTINGS_LIST:
         if setting not in os.environ:
             print(f"Missing setting {setting} in environment variables")
             exit(1)
+
+    print("Settings validated !")
 
 
 if __name__ == '__main__':
@@ -80,7 +88,7 @@ if __name__ == '__main__':
     app_mode = os.environ.get('APP_MODE', 'prod')
 
     if app_mode == "prod":
-        serve(create_app(), host='0.0.0.0', port=5000)
+        serve(create_app(), host='0.0.0.0', port=int(os.environ["EXPOSE_PORT"]))
     else:
         app = create_app()
         app.run(host='0.0.0.0')

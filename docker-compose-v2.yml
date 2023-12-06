@@ -36,6 +36,21 @@ services:
         custom_network:
             ipv4_address: 172.16.238.2
 
+  ade-public-api:
+    build: api/.
+    container_name: ade-public-api
+    depends_on:
+      - ade-mongodb
+    environment:
+      - DATABASE_HOST=172.16.238.12
+      - DATABASE_PORT=27017
+      - EXPOSE_PORT=5001
+      - APP_MODE=dev
+    networks:
+        custom_network:
+            ipv4_address: 172.16.238.3
+
+
 networks:
   custom_network:
     ipam:
