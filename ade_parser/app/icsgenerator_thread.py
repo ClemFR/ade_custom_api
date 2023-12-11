@@ -1,7 +1,8 @@
 import os
 from queue import Queue
 from threading import Thread
-from genere_ics import get_ics_file
+from scrappers.genere_ics import get_ics_file
+import scrappers.mysql_database as mysqldb
 import icsparser_thread
 import shutil
 
@@ -14,6 +15,12 @@ class IcsWork:
 
     def do_work(self):
         pass
+
+
+class IcsAll:
+    def __init__(self, date_debut, date_fin):
+        self.date_debut = date_debut
+        self.date_fin = date_fin
 
 
 class IcsStop:
@@ -45,6 +52,26 @@ class IcsGenerator:
 
         self.parser.stop_workers()
 
+    def __generate_ics(self, date_debut, date_fin, category_path, id_worker):
+
+        print(f"[IcsGenerator-{id_worker}] Generating ics for {category_path} from {date_debut} to {date_fin} ...")
+
+        libelle_groupe = category_path.split(">")[-1]
+
+        # on génère le fichier ics
+        ics_filepath = get_ics_file(category_path, date_debut, date_fin)
+
+        # set filename to the last part of the path separated by >
+        filename = libelle_groupe + ".ics"
+
+        # on renomme le fichier pour que le parser conaisse la collection à affecter (ex : B3INFOTPA2.ics)
+        dst = os.path.join(os.path.dirname(ics_filepath), filename)
+        shutil.move(ics_filepath, dst)
+
+        print(f"[IcsGenerator-{id_worker}] Ics generated for {category_path} from {date_debut} to {date_fin} !")
+        print(f"[IcsGenerator-{id_worker}] Parsing {filename} ...")
+        self.parser.queueWork.put(icsparser_thread.ParseWork(dst, libelle_groupe, date_debut, date_fin))
+
     def thread_worker(self, id):
         print(f"[IcsGenerator-{id}] Hello World !")
         while True:
@@ -52,22 +79,16 @@ class IcsGenerator:
             if isinstance(work, IcsStop):
                 print(f"[IcsGenerator-{id}] Stopping ...")
                 break
-            category_path = work.category_path
-            date_debut = work.date_debut
-            date_fin = work.date_fin
+            elif isinstance(work, IcsAll):
+                # On génère un ics pour chaque ressource dans la base de donnée
+                date_debut = work.date_debut
+                date_fin = work.date_fin
 
-            print(f"[IcsGenerator-{id}] Generating ics for {category_path} from {date_debut} to {date_fin} ...")
+                print(f"[IcsGenerator-{id}] Generating ics for all ...")
+                lte_ressources = mysqldb.get_all_ressources_paths()
 
-            libelle_groupe = category_path.split(">")[-1]
-            ics_filepath = get_ics_file(category_path, date_debut, date_fin)
-
-            # set filename to the last part of the path separated by >
-            filename = libelle_groupe + ".ics"
-
-            # on renomme le fichier pour que le parser conaisse la collection à affecter (ex : B3INFOTPA2.ics)
-            dst = os.path.join(os.path.dirname(ics_filepath), filename)
-            shutil.move(ics_filepath, dst)
-
-            print(f"[IcsGenerator-{id}] Ics generated for {category_path} from {date_debut} to {date_fin} !")
-            print(f"[IcsGenerator-{id}] Parsing {filename} ...")
-            self.parser.queueWork.put(icsparser_thread.ParseWork(dst, libelle_groupe, date_debut, date_fin))
+                for res in lte_ressources:
+                    self.__generate_ics(date_debut, date_fin, res, id)
+            else:
+                # On génère un ics pour la ressource spécifiée en paramètre
+                self.__generate_ics(work.date_debut, work.date_fin, work.category_path, id)

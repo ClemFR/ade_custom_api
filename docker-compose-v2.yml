@@ -19,17 +19,30 @@ services:
       custom_network:
         ipv4_address: 172.16.238.12
 
+  ade-mysql:
+    image: mysql:latest
+    container_name: ade-mysql
+    networks:
+      custom_network:
+        ipv4_address: 172.16.238.13
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+      - MYSQL_DATABASE=ade
+
   ade-python-parser:
     build: ade_parser/.
     container_name: ade-python-parser
     depends_on:
       - ade-mongodb
       - ade-seleniarm
+      - ade-mysql
     environment:
       - SELENIUM_HOST=172.16.238.10
       - SELENIUM_PORT=4444
-      - DATABASE_HOST=172.16.238.12
-      - DATABASE_PORT=27017
+      - MONGO_DATABASE_HOST=172.16.238.12
+      - MONGO_DATABASE_PORT=27017
+      - MYSQL_DATABASE_HOST=172.16.238.13
+      - MYSQL_DATABASE_PORT=3306
       - ADE_URL=https://ade-production.ut-capitole.fr/direct/index.jsp?showTree=true&showPianoDays=true&showPianoWeeks=true&days=0,1,2,3,4,&displayConfName=Web&login=anonymousiut&projectId=32
       - EXPOSE_PORT=5000
     networks:
@@ -41,6 +54,7 @@ services:
     container_name: ade-public-api
     depends_on:
       - ade-mongodb
+      - ade-mysql
     environment:
       - DATABASE_HOST=172.16.238.12
       - DATABASE_PORT=27017

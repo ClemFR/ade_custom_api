@@ -1,4 +1,5 @@
-from selenium import webdriver
+import sys
+
 from time import sleep
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -7,64 +8,7 @@ import os
 import zipfile
 import base64
 import io
-
-
-def __open_remote_browser():
-    # options = webdriver.ChromeOptions()
-    # options.add_argument("--disable-gpu")
-    # options.add_argument("--no-sandbox")
-    # options.add_experimental_option("prefs",{
-    #     "download.default_directory": "/home/seluser/Downloads/",
-    #     "download.prompt_for_download": False,
-    #     "download.directory_upgrade": True
-    # })
-
-    # options.add_experimental_option("localState", {
-    #     "browser.enabled_labs_experiments": [
-    #         "download-bubble@2",
-    #         "download-bubble-v2@2"
-    #     ]
-    # })
-
-    # options.add_argument("disable-features=DownloadBubble,DownloadBubbleV2")
-
-    options = webdriver.FirefoxOptions()
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.set_capability("se:downloadsEnabled", True)
-
-    profile = webdriver.FirefoxProfile()
-
-    profile.set_preference("browser.download.dir", "/home/seluser/Downloads/")
-    profile.set_preference("browser.download.folderList", 2)
-    profile.set_preference("browser.helperApps.neverAsk.saveToDisk",
-                          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    profile.set_preference("browser.download.manager.showWhenStarting", False)
-    profile.set_preference("browser.helperApps.neverAsk.openFile",
-                          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    profile.set_preference("browser.helperApps.alwaysAsk.force", False)
-    profile.set_preference("browser.download.manager.useWindow", False)
-    profile.set_preference("browser.download.manager.focusWhenStarting", False)
-    profile.set_preference("browser.download.manager.showAlertOnComplete", False)
-    profile.set_preference("browser.download.manager.closeWhenDone", True)
-
-    remote_address = f"http://{os.environ['SELENIUM_HOST']}:{os.environ['SELENIUM_PORT']}"
-    print(f"Connecting to {remote_address} ...")
-
-    driver = webdriver.Remote(command_executor=remote_address, options=options)
-    return driver
-
-
-def __unroll_line(line_text, driver):
-    wait30s = WebDriverWait(driver, 30)
-    elem_nb = len(driver.find_elements(By.CLASS_NAME, 'x-tree3-node-joint'))
-
-    ligne = driver.find_element(By.XPATH, f"//span[contains(text(), '{line_text}')]")
-    up = ligne.find_element(By.XPATH, "./..")
-    up.find_element(By.CLASS_NAME, 'x-tree3-node-joint').click()
-
-    # wait while the number of x-tree3-node-joint is the same
-    wait30s.until(lambda driver: len(driver.find_elements(By.CLASS_NAME, 'x-tree3-node-joint')) != elem_nb)
+from scrappers.selenium_util import open_remote_browser, ade_unroll_line
 
 
 def __select_line(line_text, driver):
@@ -198,54 +142,56 @@ def get_ics_file(path, start_date, end_date):
 
     unrolled_lines = []
 
-    driver = __open_remote_browser()
+    driver = open_remote_browser()
 
-    # navigate to url
-    # driver.get(
-    #     'https://ade-production.ut-capitole.fr/direct/index.jsp?showTree=true&showPianoDays=true&showPianoWeeks=true'
-    #     '&days=0,1,2,3,4,&displayConfName=Web&login=anonymousiut&projectId=32')
-    driver.get(os.environ['ADE_URL'])
+    try:
+        driver.get(os.environ['ADE_URL'])
 
-    # wait for page to load
-    wait30s = WebDriverWait(driver, 30)
-    wait30s.until(lambda driver: driver.find_element(By.CLASS_NAME, "x-tree3-node-joint"))
+        # wait for page to load
+        wait30s = WebDriverWait(driver, 30)
+        wait30s.until(lambda driver: driver.find_element(By.CLASS_NAME, "x-tree3-node-joint"))
 
-    # dérouler les ressources
-    unroll = ["Trainees", "Rooms"]
-    __unroll_line(unroll[0], driver)
-    __unroll_line(unroll[1], driver)
+        # dérouler les ressources
+        unroll = ["Trainees", "Rooms"]
+        ade_unroll_line(unroll[0], driver)
+        ade_unroll_line(unroll[1], driver)
 
-    unrolled_lines.append(unroll[0])
-    unrolled_lines.append(unroll[1])
+        unrolled_lines.append(unroll[0])
+        unrolled_lines.append(unroll[1])
 
 
-    # sélectionner la ressource
-    # path = "IUT Departement Informatique>BUT3 INFORMATIQUE RACDV>UBFBA3TP>B3INFOTPA2"
-    nb_unroll = len(path.split(">")) - 1
-    for line in path.split(">"):
-        # on déroule la ligne si elle est pas déjà déroulée
-        if nb_unroll > 0:
-            if line not in unrolled_lines:
-                __unroll_line(line, driver)
-                unrolled_lines.append(line)
-            nb_unroll -= 1
-        else:
-            # toutes les lignes on été déroulés, on sélectionne la ressource
-            __select_line(line, driver)
+        # sélectionner la ressource
+        # path = "IUT Departement Informatique>BUT3 INFORMATIQUE RACDV>UBFBA3TP>B3INFOTPA2"
+        nb_unroll = len(path.split(">")) - 1
+        for line in path.split(">"):
+            # on déroule la ligne si elle est pas déjà déroulée
+            if nb_unroll > 0:
+                if line not in unrolled_lines:
+                    ade_unroll_line(line, driver)
+                    unrolled_lines.append(line)
+                nb_unroll -= 1
+            else:
+                # toutes les lignes on été déroulés, on sélectionne la ressource
+                __select_line(line, driver)
 
-            # wait while div with class gwt-PopupPanel is present (spinner)
-            wait30s.until_not(lambda driver: driver.find_element(By.CLASS_NAME, "gwt-PopupPanel"))
+                # wait while div with class gwt-PopupPanel is present (spinner)
+                wait30s.until_not(lambda driver: driver.find_element(By.CLASS_NAME, "gwt-PopupPanel"))
 
-            # la ressource a été sélectionnée + chargée, on génère le lien de l'ics
-            __driver_download_ics(start_date, end_date, driver)
+                # la ressource a été sélectionnée + chargée, on génère le lien de l'ics
+                __driver_download_ics(start_date, end_date, driver)
 
-            # on récupère le fichier
-            downloaded_filepath = __selenium_recupere_fichier(driver)
+                # on récupère le fichier
+                downloaded_filepath = __selenium_recupere_fichier(driver)
 
-            # on ferme le navigateur
-            driver.quit()
+                # on ferme le navigateur
+                driver.quit()
 
-            return downloaded_filepath
+                return downloaded_filepath
+    except Exception as e:
+        print("Erreur lors de la récupération du fichier ics pour la ressource : " + path + " entre les dates " + start_date + " et " + end_date + " :")
+        print(e, file=sys.stderr)
+        driver.quit()
+
 
 if __name__ == '__main__':
     os.environ["SELENIUM_HOST"] = "172.16.238.10"

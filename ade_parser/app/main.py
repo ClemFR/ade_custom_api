@@ -2,6 +2,7 @@ from flask import Flask, request
 import signal
 import icsgenerator_thread as icsgenerator
 import os
+import init_mysql
 
 
 def create_app():
@@ -37,7 +38,23 @@ def create_app():
 
         return "OK"
 
+    @app.route('/parse/ask/all/<datedebut>/<datefin>')
+    def parse_all(datedebut, datefin):
+        """
+        Démarre le parsing d'ade pour toutes les catégories
+        --> génère un fichier ics
+        --> parse le fichier ics
+        --> ajoute/modifie les informations dans la base de données
 
+        Ex : http://localhost:5001/parse/ask/all/20231201/20231231
+        :param datedebut: la date de début de la période à parser (format AAAAMMJJ)
+        :param datefin: la date de fin de la période à parser (format AAAAMMJJ)
+        """
+
+        work = icsgenerator.IcsAll(date_debut=datedebut, date_fin=datefin)
+        ics_gen_instance.queueWork.put(work)
+
+        return "OK"
 
     return app
 
@@ -47,8 +64,10 @@ def validate_settings():
         "ADE_URL",
         "SELENIUM_HOST",
         "SELENIUM_PORT",
-        "DATABASE_HOST",
-        "DATABASE_PORT",
+        "MONGO_DATABASE_HOST",
+        "MONGO_DATABASE_PORT",
+        "MYSQL_DATABASE_HOST",
+        "MYSQL_DATABASE_PORT",
         "EXPOSE_PORT"
     ]
 
@@ -60,8 +79,9 @@ def validate_settings():
 
 if __name__ == '__main__':
     validate_settings()
+    init_mysql.wait_database_available()
+    init_mysql.create_tables()
+    init_mysql.update_ressources_available()
 
     app = create_app()
     app.run(host="0.0.0.0", port=int(os.environ["EXPOSE_PORT"]))
-
-
