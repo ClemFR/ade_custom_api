@@ -1,7 +1,7 @@
 import os
 from queue import Queue
 from threading import Thread
-from genere_ics import get_ics_file
+from scrappers.genere_ics import get_ics_file
 import icsparser_thread
 import shutil
 

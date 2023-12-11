@@ -7,64 +7,7 @@ import os
 import zipfile
 import base64
 import io
-
-
-def __open_remote_browser():
-    # options = webdriver.ChromeOptions()
-    # options.add_argument("--disable-gpu")
-    # options.add_argument("--no-sandbox")
-    # options.add_experimental_option("prefs",{
-    #     "download.default_directory": "/home/seluser/Downloads/",
-    #     "download.prompt_for_download": False,
-    #     "download.directory_upgrade": True
-    # })
-
-    # options.add_experimental_option("localState", {
-    #     "browser.enabled_labs_experiments": [
-    #         "download-bubble@2",
-    #         "download-bubble-v2@2"
-    #     ]
-    # })
-
-    # options.add_argument("disable-features=DownloadBubble,DownloadBubbleV2")
-
-    options = webdriver.FirefoxOptions()
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.set_capability("se:downloadsEnabled", True)
-
-    profile = webdriver.FirefoxProfile()
-
-    profile.set_preference("browser.download.dir", "/home/seluser/Downloads/")
-    profile.set_preference("browser.download.folderList", 2)
-    profile.set_preference("browser.helperApps.neverAsk.saveToDisk",
-                          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    profile.set_preference("browser.download.manager.showWhenStarting", False)
-    profile.set_preference("browser.helperApps.neverAsk.openFile",
-                          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    profile.set_preference("browser.helperApps.alwaysAsk.force", False)
-    profile.set_preference("browser.download.manager.useWindow", False)
-    profile.set_preference("browser.download.manager.focusWhenStarting", False)
-    profile.set_preference("browser.download.manager.showAlertOnComplete", False)
-    profile.set_preference("browser.download.manager.closeWhenDone", True)
-
-    remote_address = f"http://{os.environ['SELENIUM_HOST']}:{os.environ['SELENIUM_PORT']}"
-    print(f"Connecting to {remote_address} ...")
-
-    driver = webdriver.Remote(command_executor=remote_address, options=options)
-    return driver
-
-
-def __unroll_line(line_text, driver):
-    wait30s = WebDriverWait(driver, 30)
-    elem_nb = len(driver.find_elements(By.CLASS_NAME, 'x-tree3-node-joint'))
-
-    ligne = driver.find_element(By.XPATH, f"//span[contains(text(), '{line_text}')]")
-    up = ligne.find_element(By.XPATH, "./..")
-    up.find_element(By.CLASS_NAME, 'x-tree3-node-joint').click()
-
-    # wait while the number of x-tree3-node-joint is the same
-    wait30s.until(lambda driver: len(driver.find_elements(By.CLASS_NAME, 'x-tree3-node-joint')) != elem_nb)
+from scrappers.selenium_util import open_remote_browser, ade_unroll_line
 
 
 def __select_line(line_text, driver):
@@ -198,7 +141,7 @@ def get_ics_file(path, start_date, end_date):
 
     unrolled_lines = []
 
-    driver = __open_remote_browser()
+    driver = open_remote_browser()
 
     # navigate to url
     # driver.get(
@@ -212,8 +155,8 @@ def get_ics_file(path, start_date, end_date):
 
     # dérouler les ressources
     unroll = ["Trainees", "Rooms"]
-    __unroll_line(unroll[0], driver)
-    __unroll_line(unroll[1], driver)
+    ade_unroll_line(unroll[0], driver)
+    ade_unroll_line(unroll[1], driver)
 
     unrolled_lines.append(unroll[0])
     unrolled_lines.append(unroll[1])
@@ -226,7 +169,7 @@ def get_ics_file(path, start_date, end_date):
         # on déroule la ligne si elle est pas déjà déroulée
         if nb_unroll > 0:
             if line not in unrolled_lines:
-                __unroll_line(line, driver)
+                ade_unroll_line(line, driver)
                 unrolled_lines.append(line)
             nb_unroll -= 1
         else:
