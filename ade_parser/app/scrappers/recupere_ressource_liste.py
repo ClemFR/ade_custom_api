@@ -7,6 +7,12 @@ import os
 from datetime import datetime
 
 
+def __compter_espaces_debut(texte):
+    for c in texte:
+        if c != ' ':
+            return texte.index(c)
+
+
 def scrap_liste_ressource():
     driver = open_remote_browser()
 
@@ -54,7 +60,7 @@ def scrap_liste_ressource():
     ressources_to_level = {}
     ressource_order = []
     for line in lines:
-        nb_space = len([i for i in line.text if i == ' '])
+        nb_space = __compter_espaces_debut(line.text)
         ressources_to_level[line.text.strip()] = nb_space
         ressource_order.append(line.text.strip())
 
@@ -112,6 +118,5 @@ if __name__ == '__main__':
     os.environ["ADE_PASSWORD"] = ""
     os.environ["ADE_ANNEE_ID"] = "32"
     os.environ["ADE_TREE_URL"] = "https://ade-production.ut-capitole.fr/jsp/standard/gui/tree.jsp?noLoad=true"
-
 
     scrap_liste_ressource()

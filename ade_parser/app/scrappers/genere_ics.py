@@ -1,4 +1,5 @@
-from selenium import webdriver
+import sys
+
 from time import sleep
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -143,52 +144,54 @@ def get_ics_file(path, start_date, end_date):
 
     driver = open_remote_browser()
 
-    # navigate to url
-    # driver.get(
-    #     'https://ade-production.ut-capitole.fr/direct/index.jsp?showTree=true&showPianoDays=true&showPianoWeeks=true'
-    #     '&days=0,1,2,3,4,&displayConfName=Web&login=anonymousiut&projectId=32')
-    driver.get(os.environ['ADE_URL'])
+    try:
+        driver.get(os.environ['ADE_URL'])
 
-    # wait for page to load
-    wait30s = WebDriverWait(driver, 30)
-    wait30s.until(lambda driver: driver.find_element(By.CLASS_NAME, "x-tree3-node-joint"))
+        # wait for page to load
+        wait30s = WebDriverWait(driver, 30)
+        wait30s.until(lambda driver: driver.find_element(By.CLASS_NAME, "x-tree3-node-joint"))
 
-    # dérouler les ressources
-    unroll = ["Trainees", "Rooms"]
-    ade_unroll_line(unroll[0], driver)
-    ade_unroll_line(unroll[1], driver)
+        # dérouler les ressources
+        unroll = ["Trainees", "Rooms"]
+        ade_unroll_line(unroll[0], driver)
+        ade_unroll_line(unroll[1], driver)
 
-    unrolled_lines.append(unroll[0])
-    unrolled_lines.append(unroll[1])
+        unrolled_lines.append(unroll[0])
+        unrolled_lines.append(unroll[1])
 
 
-    # sélectionner la ressource
-    # path = "IUT Departement Informatique>BUT3 INFORMATIQUE RACDV>UBFBA3TP>B3INFOTPA2"
-    nb_unroll = len(path.split(">")) - 1
-    for line in path.split(">"):
-        # on déroule la ligne si elle est pas déjà déroulée
-        if nb_unroll > 0:
-            if line not in unrolled_lines:
-                ade_unroll_line(line, driver)
-                unrolled_lines.append(line)
-            nb_unroll -= 1
-        else:
-            # toutes les lignes on été déroulés, on sélectionne la ressource
-            __select_line(line, driver)
+        # sélectionner la ressource
+        # path = "IUT Departement Informatique>BUT3 INFORMATIQUE RACDV>UBFBA3TP>B3INFOTPA2"
+        nb_unroll = len(path.split(">")) - 1
+        for line in path.split(">"):
+            # on déroule la ligne si elle est pas déjà déroulée
+            if nb_unroll > 0:
+                if line not in unrolled_lines:
+                    ade_unroll_line(line, driver)
+                    unrolled_lines.append(line)
+                nb_unroll -= 1
+            else:
+                # toutes les lignes on été déroulés, on sélectionne la ressource
+                __select_line(line, driver)
 
-            # wait while div with class gwt-PopupPanel is present (spinner)
-            wait30s.until_not(lambda driver: driver.find_element(By.CLASS_NAME, "gwt-PopupPanel"))
+                # wait while div with class gwt-PopupPanel is present (spinner)
+                wait30s.until_not(lambda driver: driver.find_element(By.CLASS_NAME, "gwt-PopupPanel"))
 
-            # la ressource a été sélectionnée + chargée, on génère le lien de l'ics
-            __driver_download_ics(start_date, end_date, driver)
+                # la ressource a été sélectionnée + chargée, on génère le lien de l'ics
+                __driver_download_ics(start_date, end_date, driver)
 
-            # on récupère le fichier
-            downloaded_filepath = __selenium_recupere_fichier(driver)
+                # on récupère le fichier
+                downloaded_filepath = __selenium_recupere_fichier(driver)
 
-            # on ferme le navigateur
-            driver.quit()
+                # on ferme le navigateur
+                driver.quit()
 
-            return downloaded_filepath
+                return downloaded_filepath
+    except Exception as e:
+        print("Erreur lors de la récupération du fichier ics pour la ressource : " + path + " entre les dates " + start_date + " et " + end_date + " :")
+        print(e, file=sys.stderr)
+        driver.quit()
+
 
 if __name__ == '__main__':
     os.environ["SELENIUM_HOST"] = "172.16.238.10"

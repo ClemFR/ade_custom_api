@@ -1,3 +1,5 @@
+import time
+
 from mysql import connector
 import os
 
@@ -30,7 +32,7 @@ def create_tables():
     conn.close()
 
 
-def update_ressources_availables():
+def update_ressources_available():
     # On vérifie que le fichier contenant les ressources existe
     if not os.path.exists(os.path.join(os.path.dirname(os.path.realpath(__file__)), "ressources.txt")):
         print("[WARN] Auto scrapping des ressources désactivé : ")
@@ -57,21 +59,33 @@ def update_ressources_availables():
 
     cursor.execute(req)
     ressources = cursor.fetchall()
+    cursor.close()
 
-    req = ""
+    cursor = conn.cursor()
 
     for ressource in ressources:
         if ressource[1] not in res_name_to_path:
-            req += f"DELETE FROM ressource WHERE ID = {ressource[0]};\n"
+            cursor.execute(f"DELETE FROM ressource WHERE ID = '{ressource[0]}'")
         else:
-            req += f"UPDATE ressource SET chemin = '{res_name_to_path[ressource[1]]}'  WHERE ID = {ressource[0]};\n"
+            cursor.execute(f"UPDATE ressource SET chemin = '{res_name_to_path[ressource[1]]}'  WHERE ID = {ressource[0]}")
             del res_name_to_path[ressource[1]]
 
     for ressource in res_name_to_path.items():
-        req += f"INSERT INTO ressource (nom, chemin) VALUES ('{ressource[0]}', '{ressource[1]}');\n"
-
-    cursor.execute(req, multi=True)
-    conn.commit()
+        cursor.execute(f"INSERT INTO ressource (nom, chemin) VALUES ('{ressource[0]}', '{ressource[1]}')")
 
     cursor.close()
+
+    conn.commit()
     conn.close()
+
+
+def wait_database_available():
+    cnx_ok = False
+    while not cnx_ok:
+        try:
+            cnx = __get_cnx()
+            cnx_ok = True
+            cnx.close()
+        except:
+            print("Waiting for database to be available ...")
+            time.sleep(2)

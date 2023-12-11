@@ -50,8 +50,16 @@ class IcsParser:
             start_date = work.start_date
             end_date = work.end_date
 
+            if ics_path is None:
+                print("Impossible d'insérer les informations dans MongoDB, fichier ics invalide (None)")
+                continue
+
             print(f"[IcsParser-{id}] Parsing {ics_path} ...")
-            inserted, updated = parse_file(ics_path, group, start_date, end_date)
-            print(f"[IcsParser-{id}] Parsing {ics_path} done, {inserted} inserted, {updated} updated !")
+            try:
+                inserted, updated, deleted = parse_file(ics_path, group, start_date, end_date)
+                print(
+                    f"[IcsParser-{id}] Parsing {ics_path} done, {inserted} inserted, {updated} updated, {deleted} deleted !")
+            except:
+                print(f"[IcsParser-{id}] Parsing {ics_path} failed !")
 
             os.remove(ics_path)
