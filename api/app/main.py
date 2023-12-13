@@ -4,6 +4,7 @@ import signal
 import os
 import mongo_reqs as mr
 from datetime import datetime, timedelta
+import requests as req
 
 
 def receive_signal(signum, stack):
@@ -72,11 +73,36 @@ def create_app():
 
             return mr.get_room_schedule(name, day, day)
 
+        @app.route("/admin/scrap_all")
+        def admin_launch_scrap_all():
+            """
+            Launch the scrap of all the promotions
+            """
+
+            # Getting the headers
+            headers = request.headers
+            # Checking if the header is present
+            if "X-Admin-Key" not in headers:
+                return "Missing X-Admin-Key header", 401
+            # Checking if the header is correct
+            if headers["X-Admin-Key"] != os.environ["ADMIN_KEY"]:
+                return "Wrong X-Admin-Key header", 401
+
+            print("Launching scrap all")
+            start_date = datetime.now()
+            start_date = start_date - timedelta(days=start_date.weekday())
+            # Scrap for 4 weeks
+            end_date = start_date + timedelta(days=28)
+            req.get("http://" + os.environ["PARSER_ADDRESS"] + f"/parse/ask/all/{start_date.strftime('%Y%m%d')}/{end_date.strftime('%Y%m%d')}")
+            return "", 200
+
     return app
 
 
 def validate_settings():
     SETTINGS_LIST = [
+        "PARSER_ADDRESS",
+        "ADMIN_KEY",
         "DATABASE_HOST",
         "DATABASE_PORT",
         "APP_MODE",
@@ -84,8 +110,8 @@ def validate_settings():
     ]
 
     for setting in SETTINGS_LIST:
-        if setting not in os.environ:
-            print(f"Missing setting {setting} in environment variables")
+        if setting not in os.environ and setting.strip() == "":
+            print(f"Missing or empty setting {setting} in environment variables")
             exit(1)
 
     print("Settings validated !")
@@ -101,4 +127,4 @@ if __name__ == '__main__':
         serve(create_app(), host='0.0.0.0', port=int(os.environ["EXPOSE_PORT"]))
     else:
         app = create_app()
-        app.run(host='0.0.0.0')
+        app.run(host='0.0.0.0', port=int(os.environ["EXPOSE_PORT"]))

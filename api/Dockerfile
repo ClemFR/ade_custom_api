@@ -13,6 +13,10 @@ RUN pip3 install -r requirements.txt
 ENV DATABASE_HOST=localhost
 ENV DATABASE_PORT=27017
 ENV APP_MODE=prod
+ENV PARSER_ADDRESS=172.16.238.2:5000
+
+# Clé pour les requêtes admin, A CHANGER DANS LE DOCKER COMPOSE!!!
+ENV ADMIN_KEY=0000
 
 # Fix des prints qui ne s'affichent pas correctement
 ENV PYTHONUNBUFFERED=1

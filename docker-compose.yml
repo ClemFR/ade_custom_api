@@ -59,7 +59,8 @@ services:
     environment:
       - DATABASE_HOST=172.16.238.12
       - DATABASE_PORT=27017
-      - EXPOSE_PORT=5001
+      - EXPOSE_PORT=5000
+      - PARSER_ADDRESS=172.16.238.2:5000
     env_file:
       - stack.env
     networks:
