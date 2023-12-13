@@ -32,7 +32,7 @@ def get_class_schedule(classname, start, end):
     col = db["schedules"]
 
     req = {
-        "group": {"$in": [classname]},
+        "tp_groups": {"$in": [classname]},
         "$and": [
             {"start": {"$gte": YYYYMMDD_to_datetime(start)}},
             {"end": {"$lte": YYYYMMDD_to_datetime(end).replace(hour=23, minute=59, second=59)}}

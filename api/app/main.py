@@ -3,6 +3,7 @@ from waitress import serve
 import signal
 import os
 import mongo_reqs as mr
+from datetime import datetime, timedelta
 
 
 def receive_signal(signum, stack):
@@ -26,7 +27,16 @@ def create_app():
             :param day: A day in the week (format AAAAMMJJ)
             :return: Json array representing the schedule.
             """
-            pass
+
+            week_start = datetime.strptime(day, "%Y%m%d")
+            # Get week start to monday
+            week_start = week_start - timedelta(days=week_start.weekday())
+
+            week_end = week_start + timedelta(days=6)
+            print("Requete getWeek : " + str(promo_id) + " --> " + str(week_start) + " --> " + str(week_end))
+
+            return mr.get_class_schedule(promo_id, week_start.strftime("%Y%m%d"), week_end.strftime("%Y%m%d"))
+
 
         @app.route("/day/<promo_id>/<day>")
         def get_day(promo_id, day):
