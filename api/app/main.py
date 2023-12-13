@@ -20,6 +20,30 @@ def create_app():
         signal.signal(signal.SIGINT, receive_signal)
         signal.signal(signal.SIGTERM, receive_signal)
 
+        @app.route("/admin/scrap_all")
+        def admin_launch_scrap_all():
+            """
+            Launch the scrap of all the promotions
+            """
+
+            # Getting the headers
+            headers = request.headers
+            # Checking if the header is present
+            if "X-Admin-Key" not in headers:
+                return "Missing X-Admin-Key header", 401
+            # Checking if the header is correct
+            if headers["X-Admin-Key"] != os.environ["ADMIN_KEY"]:
+                return "Wrong X-Admin-Key header", 401
+
+            print("Launching scrap all")
+            start_date = datetime.now()
+            start_date = start_date - timedelta(days=start_date.weekday())
+            # Scrap for 4 weeks
+            end_date = start_date + timedelta(days=28)
+            req.get("http://" + os.environ[
+                "PARSER_ADDRESS"] + f"/parse/ask/all/{start_date.strftime('%Y%m%d')}/{end_date.strftime('%Y%m%d')}")
+            return "", 200
+
         @app.route("/week/<promo_id>/<day>")
         def get_week(promo_id, day):
             """
@@ -37,7 +61,6 @@ def create_app():
             print("Requete getWeek : " + str(promo_id) + " --> " + str(week_start) + " --> " + str(week_end))
 
             return mr.get_class_schedule(promo_id, week_start.strftime("%Y%m%d"), week_end.strftime("%Y%m%d"))
-
 
         @app.route("/day/<promo_id>/<day>")
         def get_day(promo_id, day):
@@ -73,28 +96,7 @@ def create_app():
 
             return mr.get_room_schedule(name, day, day)
 
-        @app.route("/admin/scrap_all")
-        def admin_launch_scrap_all():
-            """
-            Launch the scrap of all the promotions
-            """
 
-            # Getting the headers
-            headers = request.headers
-            # Checking if the header is present
-            if "X-Admin-Key" not in headers:
-                return "Missing X-Admin-Key header", 401
-            # Checking if the header is correct
-            if headers["X-Admin-Key"] != os.environ["ADMIN_KEY"]:
-                return "Wrong X-Admin-Key header", 401
-
-            print("Launching scrap all")
-            start_date = datetime.now()
-            start_date = start_date - timedelta(days=start_date.weekday())
-            # Scrap for 4 weeks
-            end_date = start_date + timedelta(days=28)
-            req.get("http://" + os.environ["PARSER_ADDRESS"] + f"/parse/ask/all/{start_date.strftime('%Y%m%d')}/{end_date.strftime('%Y%m%d')}")
-            return "", 200
 
     return app
 
