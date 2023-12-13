@@ -34,13 +34,22 @@ def create_tables():
 
 def update_ressources_available():
     # On vérifie que le fichier contenant les ressources existe
-    if not os.path.exists(os.path.join(os.path.dirname(os.path.realpath(__file__)), "ressources.txt")):
+
+    fichier = os.path.join(os.path.dirname(os.path.realpath(__file__)))
+    if os.environ["APP_MODE"] == "prod":
+        fichier = os.path.join(fichier, "ressources.txt")
+    else:
+        fichier = os.path.join(fichier, "ressources_dev.txt")
+
+    print(f"[INFO] Auto scrapping des ressources activé : {fichier}")
+
+    if not os.path.exists(fichier):
         print("[WARN] Auto scrapping des ressources désactivé : ")
-        print("[WARN] Le fichier ressources.txt n'existe pas, veuillez générer une liste de ressources avec le script recupere_ressource_liste.py et le placer dans le dossier app.")
+        print("[WARN] Le fichier ressources.txt (ressources_dev.txt) n'existe pas, veuillez générer une liste de ressources avec le script recupere_ressource_liste.py et le placer dans le dossier app.")
         return
 
     # On récupère les ressources dans le fichier
-    f = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "ressources.txt"), "r")
+    f = open(fichier, "r")
     res_file_lines = f.readlines()
     f.close()
 
@@ -61,19 +70,19 @@ def update_ressources_available():
     ressources = cursor.fetchall()
     cursor.close()
 
-    cursor = conn.cursor()
-
     for ressource in ressources:
+        cursor = conn.cursor()
         if ressource[1] not in res_name_to_path:
             cursor.execute(f"DELETE FROM ressource WHERE ID = '{ressource[0]}'")
         else:
             cursor.execute(f"UPDATE ressource SET chemin = '{res_name_to_path[ressource[1]]}'  WHERE ID = {ressource[0]}")
             del res_name_to_path[ressource[1]]
+        cursor.close()
 
     for ressource in res_name_to_path.items():
+        cursor = conn.cursor()
         cursor.execute(f"INSERT INTO ressource (nom, chemin) VALUES ('{ressource[0]}', '{ressource[1]}')")
-
-    cursor.close()
+        cursor.close()
 
     conn.commit()
     conn.close()
