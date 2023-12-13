@@ -20,6 +20,8 @@ def create_tables():
 
     cursor = conn.cursor()
 
+    print("[INFO] Creating tables if not exists ...")
+
     req = """
         CREATE TABLE IF NOT EXISTS ressource (ID INT AUTO_INCREMENT PRIMARY KEY, nom VARCHAR(255), chemin VARCHAR(255));
         CREATE TABLE IF NOT EXISTS utilisateurs (ID INT AUTO_INCREMENT PRIMARY KEY, nom VARCHAR(255), prenom VARCHAR(255), mail VARCHAR(255), login VARCHAR(255), mdp VARCHAR(64), admin BOOLEAN, favorite_ressource VARCHAR(255));
