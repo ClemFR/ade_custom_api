@@ -45,6 +45,8 @@ services:
       - MYSQL_DATABASE_PORT=3306
       - ADE_URL=https://ade-production.ut-capitole.fr/direct/index.jsp?showTree=true&showPianoDays=true&showPianoWeeks=true&days=0,1,2,3,4,&displayConfName=Web&login=anonymousiut&projectId=32
       - EXPOSE_PORT=5000
+    env_file:
+      - stack.env
     networks:
         custom_network:
             ipv4_address: 172.16.238.2
@@ -59,7 +61,7 @@ services:
       - DATABASE_HOST=172.16.238.12
       - DATABASE_PORT=27017
       - EXPOSE_PORT=5001
-      - APP_MODE=dev
+      - APP_MODE=prod
     networks:
         custom_network:
             ipv4_address: 172.16.238.3

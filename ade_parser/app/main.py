@@ -3,12 +3,14 @@ import signal
 import icsgenerator_thread as icsgenerator
 import os
 import init_mysql
+import auto_trigger
 
 
 def create_app():
     def receive_signal(signal_number, frame):
         print(f"Received signal {signal_number}")
         ics_gen_instance.stop_workers()
+        auto_trigger.stop_trigger_thread()
         exit(0)
 
     app = Flask(__name__)
@@ -18,6 +20,8 @@ def create_app():
         signal.signal(signal.SIGTERM, receive_signal)
 
         ics_gen_instance = icsgenerator.IcsGenerator()
+        auto_trigger.start_trigger_thread(ics_gen_instance.queueWork)
+
 
     @app.route('/parse/ask/<path>/<datedebut>/<datefin>')
     def ask_parse(path, datedebut, datefin):
