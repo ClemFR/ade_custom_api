@@ -1,5 +1,6 @@
 import datetime
 import sys
+import traceback
 
 from time import sleep
 from selenium.webdriver.common.by import By
@@ -191,12 +192,14 @@ def get_ics_file(path, start_date, end_date):
     except Exception as e:
         print("========================================================")
         print("Erreur lors de la récupération du fichier ics pour la ressource : " + path + " entre les dates " + start_date + " et " + end_date + " :")
-        print(e)
+        print(traceback.format_exc())
         print("========================================================")
         try:
-            os.makedirs("/screenshots", exist_ok=True)
-            driver.save_screenshot(datetime.datetime.now().strftime("%Y%m%d%H%M%S") + f"_{path.split('>')[-1]}.png")
-            print("Screenshot saved in /screenshots")
+
+            path = "/screenshots"
+            file = os.path.join(path, datetime.datetime.now().strftime("%Y%m%d%H%M%S") + f"_{path.split('>')[-1]}.png")
+            driver.save_screenshot(file)
+            print("Screenshot saved in /screenshots (file : " + file + ")")
             print("========================================================")
             driver.quit()
         except:
