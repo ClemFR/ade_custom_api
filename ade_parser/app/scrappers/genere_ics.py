@@ -188,8 +188,11 @@ def get_ics_file(path, start_date, end_date):
 
                 return downloaded_filepath
     except Exception as e:
+        print("========================================================")
         print("Erreur lors de la récupération du fichier ics pour la ressource : " + path + " entre les dates " + start_date + " et " + end_date + " :")
-        print(e, file=sys.stderr)
+        print(e)
+        print("========================================================")
+
         driver.quit()
 
 

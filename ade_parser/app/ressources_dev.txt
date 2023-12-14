@@ -1,5 +1,6 @@
-IUT Departement Informatique>BUT3 INFORMATIQUE IAMSI>UBFAA3TP>B3INFOTPD
-IUT Departement Informatique>BUT3 INFORMATIQUE RACDV>UBFBA3TP>B3INFOTPA1
-IUT Departement Informatique>BUT3 INFORMATIQUE RACDV>UBFBA3TP>B3INFOTPA2
-IUT Departement Informatique>BUT3 INFORMATIQUE RACDV>UBFBA3TP>B3INFOTPA3
-IUT Departement Informatique>BUT3 INFORMATIQUE RACDV>UBFBA3TP>B3INFOTPA4
+IUT Departement Carrieres Juridiques>BUT1 CJ>UBCAA1TP>B1CJTP01
+IUT Departement Carrieres Juridiques>BUT1 CJ>UBCAA1TP>B1CJTP02
+IUT Departement Carrieres Juridiques>BUT1 CJ>UBCAA1TP>B1CJTP03
+IUT Departement Carrieres Juridiques>BUT1 CJ>UBCAA1TP>B1CJTP03
+IUT Departement Carrieres Juridiques>BUT1 CJ>UBCAA1TP>B1CJTP04
+IUT Departement Carrieres Juridiques>Préparat° concours Greffe>DPGRE1>DPGRE101
