@@ -192,13 +192,10 @@ def get_ics_file(path, start_date, end_date):
         print("Erreur lors de la récupération du fichier ics pour la ressource : " + path + " entre les dates " + start_date + " et " + end_date + " :")
         print(e)
         print("========================================================")
-
-        driver.quit()
-
-
-if __name__ == '__main__':
-    os.environ["SELENIUM_HOST"] = "172.16.238.10"
-    os.environ["SELENIUM_PORT"] = "4444"
-    os.environ["ADE_URL"] = "https://ade-production.ut-capitole.fr/direct/index.jsp?showTree=true&showPianoDays=true&showPianoWeeks=true&days=0,1,2,3,4,&displayConfName=Web&login=anonymousiut&projectId=32"
-
-    print(get_ics_file("IUT Departement Informatique>BUT3 INFORMATIQUE RACDV>UBFBA3TP>B3INFOTPA2", "20231201", "20231231"))
+        try:
+            screenshot_data = driver.get_screenshot_as_base64()
+            print("Screenshot : " + screenshot_data)
+            print("========================================================")
+            driver.quit()
+        except:
+            pass
