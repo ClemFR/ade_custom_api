@@ -1,3 +1,4 @@
+import datetime
 import sys
 
 from time import sleep
@@ -193,8 +194,9 @@ def get_ics_file(path, start_date, end_date):
         print(e)
         print("========================================================")
         try:
-            screenshot_data = driver.get_screenshot_as_base64()
-            print("Screenshot : " + screenshot_data)
+            os.makedirs("/screenshots", exist_ok=True)
+            driver.save_screenshot(datetime.datetime.now().strftime("%Y%m%d%H%M%S") + f"_{path.split('>')[-1]}.png")
+            print("Screenshot saved in /screenshots")
             print("========================================================")
             driver.quit()
         except:
