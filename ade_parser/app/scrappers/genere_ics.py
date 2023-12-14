@@ -81,12 +81,29 @@ def __date_selector(date, date_field, driver):
 
 
 def __selenium_recupere_fichier(driver):
-    file_list = f"http://{os.environ['SELENIUM_HOST']}:{os.environ['SELENIUM_PORT']}/session/{driver.session_id}/se/files"
-    r = requests.get(file_list)
-    files = r.json()["value"]
+    MAX_ATTEMPTS = 5
+    attempts = 0
 
-    # on récupère le dernier fichier
-    file = files["names"][-1]
+    end = False
+
+    file_list = f"http://{os.environ['SELENIUM_HOST']}:{os.environ['SELENIUM_PORT']}/session/{driver.session_id}/se/files"
+    files = None
+    file = ""
+    while not end:
+        try:
+            r = requests.get(file_list)
+            files = r.json()["value"]
+
+            # on récupère le dernier fichier
+            file = files["names"][-1]
+            end = True
+        except:
+            attempts += 1
+            if attempts < MAX_ATTEMPTS:
+                sleep(2)
+            else:
+                # throw an exception
+                raise Exception(f"Unable to retrieve file from selenium after {MAX_ATTEMPTS} attempts.", files)
 
     # On télécharge le fichier
     post_body = {"name": file}
@@ -128,9 +145,6 @@ def __driver_download_ics(datedebut, datefin, driver):
 
     # on clique sur le bouton OK pour télécharger le fichier
     popup.find_element(By.CLASS_NAME, "x-toolbar-ct").find_elements(By.TAG_NAME, "button")[0].click()
-
-    # on attend que le fichier soit téléchargé
-    sleep(2)
 
 
 def get_ics_file(path, start_date, end_date):
