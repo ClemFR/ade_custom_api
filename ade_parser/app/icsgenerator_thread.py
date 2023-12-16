@@ -60,7 +60,7 @@ class IcsGenerator:
         ics_filepath = get_ics_file(category_path, date_debut, date_fin)
 
         if ics_filepath is None:
-            print(f"[IcsGenerator-{id_worker}] ERROR ! No ics generated for {category_path} from {date_debut} to {date_fin} !")
+            print(f"[IcsGenerator-{id_worker}] No ics generated for {category_path} from {date_debut} to {date_fin}.")
             return
 
         # set filename to the last part of the path separated by >

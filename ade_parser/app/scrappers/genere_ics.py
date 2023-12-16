@@ -10,7 +10,7 @@ import os
 import zipfile
 import base64
 import io
-from scrappers.selenium_util import open_remote_browser, ade_unroll_line
+from .selenium_util import open_remote_browser, ade_unroll_line
 
 
 def __select_line(line_text, driver):
@@ -159,7 +159,21 @@ def __driver_download_ics(datedebut, datefin, driver):
     __date_selector(datefin, inputs[1], driver)
 
     # on clique sur le bouton OK pour télécharger le fichier
-    popup.find_element(By.CLASS_NAME, "x-toolbar-ct").find_elements(By.TAG_NAME, "button")[0].click()
+    btn_ok = popup.find_element(By.CLASS_NAME, "x-toolbar-ct").find_elements(By.TAG_NAME, "button")[0]
+
+    # On remote le bouton jusqu'a trouver l'élément table
+    elem_up = btn_ok.find_element(By.XPATH, "./..")
+    while elem_up.tag_name != "table":
+        elem_up = elem_up.find_element(By.XPATH, "./..")
+
+    # on vérifie si le container du bouton contient la classe x-item-disabled
+    if "x-item-disabled" in elem_up.get_attribute("class"):
+        # le bouton est désactivé, il n'y a pas de fichier à télécharger
+        return False
+    else:
+        # le bouton est activé, on télécharge le fichier
+        btn_ok.click()
+        return True
 
 
 def get_ics_file(path, start_date, end_date):
@@ -209,10 +223,12 @@ def get_ics_file(path, start_date, end_date):
                 wait30s.until_not(lambda driver: driver.find_element(By.CLASS_NAME, "gwt-PopupPanel"))
 
                 # la ressource a été sélectionnée + chargée, on génère le lien de l'ics
-                __driver_download_ics(start_date, end_date, driver)
-
-                # on récupère le fichier
-                downloaded_filepath = __selenium_recupere_fichier(driver)
+                if __driver_download_ics(start_date, end_date, driver):
+                    # on récupère le fichier
+                    downloaded_filepath = __selenium_recupere_fichier(driver)
+                else:
+                    # pas de fichier à télécharger
+                    downloaded_filepath = None
 
                 # on ferme le navigateur
                 driver.quit()
