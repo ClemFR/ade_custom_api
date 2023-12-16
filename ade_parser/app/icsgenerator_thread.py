@@ -54,8 +54,6 @@ class IcsGenerator:
 
     def __generate_ics(self, date_debut, date_fin, category_path, id_worker):
 
-        print(f"[IcsGenerator-{id_worker}] Generating ics for {category_path} from {date_debut} to {date_fin} ...")
-
         libelle_groupe = category_path.split(">")[-1]
 
         # on génère le fichier ics
@@ -91,8 +89,13 @@ class IcsGenerator:
                 print(f"[IcsGenerator-{id}] Generating ics for all ...")
                 lte_ressources = mysqldb.get_all_ressources_paths()
 
+                max = len(lte_ressources)
+                i = 0
                 for res in lte_ressources:
+                    i += 1
+                    print(f"[IcsGenerator-{id}] Generating ics for {res} ({i}/{max})")
                     self.__generate_ics(date_debut, date_fin, res, id)
             else:
                 # On génère un ics pour la ressource spécifiée en paramètre
+                print(f"[IcsGenerator-{id}] Generating ics for {work.category_path} ...")
                 self.__generate_ics(work.date_debut, work.date_fin, work.category_path, id)

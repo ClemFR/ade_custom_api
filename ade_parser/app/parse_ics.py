@@ -22,7 +22,7 @@ def mongo_connect():
 
 def parse_file(ics_path, group_name, start_date, end_date):
     ID_PROCESS = str(uuid4())
-    print(f"Updating : {group_name} from {start_date} to {end_date} with id {ID_PROCESS}")
+    print(f"[ParseFile] Updating : {group_name} from {start_date} to {end_date} with id {ID_PROCESS}")
 
     inserted = 0
     updated = 0

@@ -1,5 +1,5 @@
 import datetime
-import sys
+import re
 import traceback
 
 from time import sleep
@@ -14,7 +14,22 @@ from scrappers.selenium_util import open_remote_browser, ade_unroll_line
 
 
 def __select_line(line_text, driver):
-    driver.find_element(By.XPATH, f"//span[contains(text(), '{line_text}')]").click()
+    # On regarde si la chaine contient un nombre entre []
+    rgx = r"\[[0-9]\]"
+    match = re.findall(rgx, line_text)
+    if len(match) > 0:
+        # On récupère le nombre
+        nb = int(match[0][1:-1])
+
+        # On enlève le nombre de la chaine
+        line_text = line_text.replace(f"[{nb}]", "")
+
+        # On sélectionne la ligne à l'index nb
+        driver.find_elements(By.XPATH, f"//span[contains(text(), '{line_text}')]")[nb].click()
+
+    else:
+        # Pas de nombre, on sélectionne la première ligne
+        driver.find_element(By.XPATH, f"//span[contains(text(), '{line_text}')]").click()
 
 
 def __date_selector(date, date_field, driver):
