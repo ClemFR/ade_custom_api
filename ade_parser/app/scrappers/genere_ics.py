@@ -224,11 +224,10 @@ def get_ics_file(path, start_date, end_date):
         print(traceback.format_exc())
         print("========================================================")
         try:
-
-            path = "/screenshots"
-            file = os.path.join(path, datetime.datetime.now().strftime("%Y%m%d%H%M%S") + f"_{path.split('>')[-1]}.png")
-            driver.save_screenshot(file)
-            print("Screenshot saved in /screenshots (file : " + file + ")")
+            res_name = path.split(">")[-1]
+            filename = res_name + "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".png"
+            driver.save_screenshot("/screenshots/" + filename)
+            print("Screenshot saved in /screenshots (file : " + filename + ")")
             print("========================================================")
             driver.quit()
         except:
