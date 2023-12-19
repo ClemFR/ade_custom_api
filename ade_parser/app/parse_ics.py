@@ -75,6 +75,11 @@ def parse_file(ics_path, group_name, start_date, end_date):
             "_id": e.uid,
         }
 
+        # on check si l'élément location est vide
+        # si vide on supprime
+        if elem["location"] == "":
+            elem.pop("location")
+
         # check if event already exists
         find_elem = col.find_one({"_id": e.uid})
         if find_elem is None:
