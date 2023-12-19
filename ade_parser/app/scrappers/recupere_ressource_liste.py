@@ -68,17 +68,15 @@ def scrap_liste_ressource():
 
     groupes_tp = []
     for ressource in ressource_order:
-        if "CM" in ressource or "TD" in ressource:
-            continue
-        else:
-            if ressources_to_level[ressource] == 15:
-                groupes_tp.append(ressource)
+        if ressources_to_level[ressource] == 15:
+            groupes_tp.append(ressource)
 
     # Pour chaque groupe de tp, on va chercher l'emplacement dans le dictionnaire, et on remonte le dictionnaire
     # jusqu'à trouver la ressource "Trainees"
 
     format = "%Y-%m-%d_%H:%M:%S"
     current_date = datetime.now().strftime(format)
+    paths_list = []
 
     f = open("ressources" + current_date + ".txt", "w")
 
@@ -104,9 +102,14 @@ def scrap_liste_ressource():
             # On met à jour l'index
             current_tree_index = ressources_to_level[ressource_order[position]]
 
-        print(path)
+        paths_list.append(path)
+        # On compte le nombre de fois que le chemin apparait dans la liste
+        # Si il apparait plus d'une fois, on ajoute un chiffre à la fin
+        count = sum([1 for i in range(len(paths_list)) if paths_list[i] == path])
+        if count - 1 > 0:
+            print("path duplique trouvé")
+            path = path + "[" + str(count-1) + "]"
         f.write(path + "\n")
-
     f.close()
 
 

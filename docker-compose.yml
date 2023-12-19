@@ -18,6 +18,9 @@ services:
     networks:
       custom_network:
         ipv4_address: 172.16.238.12
+    volumes:
+      - ./docker_volumes/mongodb/db:/data/db
+      - ./docker_volumes/mongodb/configdb:/data/configdb
 
   ade-mysql:
     image: mysql:latest
@@ -28,6 +31,8 @@ services:
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=true
       - MYSQL_DATABASE=ade
+    volumes:
+      - ./docker_volumes/mysql:/var/lib/mysql
 
   ade-python-parser:
     build: ade_parser/.
@@ -46,6 +51,8 @@ services:
       - EXPOSE_PORT=5000
     env_file:
       - stack.env
+    volumes:
+      - ./docker_volumes/screenshots:/screenshots
     networks:
         custom_network:
             ipv4_address: 172.16.238.2

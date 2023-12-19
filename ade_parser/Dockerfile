@@ -1,7 +1,7 @@
 FROM alpine:latest
 
 RUN apk update
-RUN apk add --no-cache python3-dev py3-pip
+RUN apk add --no-cache python3-dev py3-pip gdb
 
 ENV PIP_BREAK_SYSTEM_PACKAGES 1
 

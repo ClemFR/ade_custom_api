@@ -1,4 +1,6 @@
-import sys
+import datetime
+import re
+import traceback
 
 from time import sleep
 from selenium.webdriver.common.by import By
@@ -8,11 +10,26 @@ import os
 import zipfile
 import base64
 import io
-from scrappers.selenium_util import open_remote_browser, ade_unroll_line
+from .selenium_util import open_remote_browser, ade_unroll_line
 
 
 def __select_line(line_text, driver):
-    driver.find_element(By.XPATH, f"//span[contains(text(), '{line_text}')]").click()
+    # On regarde si la chaine contient un nombre entre []
+    rgx = r"\[[0-9]\]"
+    match = re.findall(rgx, line_text)
+    if len(match) > 0:
+        # On récupère le nombre
+        nb = int(match[0][1:-1])
+
+        # On enlève le nombre de la chaine
+        line_text = line_text.replace(f"[{nb}]", "")
+
+        # On sélectionne la ligne à l'index nb
+        driver.find_elements(By.XPATH, f"//span[contains(text(), '{line_text}')]")[nb].click()
+
+    else:
+        # Pas de nombre, on sélectionne la première ligne
+        driver.find_element(By.XPATH, f"//span[contains(text(), '{line_text}')]").click()
 
 
 def __date_selector(date, date_field, driver):
@@ -79,12 +96,29 @@ def __date_selector(date, date_field, driver):
 
 
 def __selenium_recupere_fichier(driver):
-    file_list = f"http://{os.environ['SELENIUM_HOST']}:{os.environ['SELENIUM_PORT']}/session/{driver.session_id}/se/files"
-    r = requests.get(file_list)
-    files = r.json()["value"]
+    MAX_ATTEMPTS = 5
+    attempts = 0
 
-    # on récupère le dernier fichier
-    file = files["names"][-1]
+    end = False
+
+    file_list = f"http://{os.environ['SELENIUM_HOST']}:{os.environ['SELENIUM_PORT']}/session/{driver.session_id}/se/files"
+    files = None
+    file = ""
+    while not end:
+        try:
+            r = requests.get(file_list)
+            files = r.json()["value"]
+
+            # on récupère le dernier fichier
+            file = files["names"][-1]
+            end = True
+        except:
+            attempts += 1
+            if attempts < MAX_ATTEMPTS:
+                sleep(2)
+            else:
+                # throw an exception
+                raise Exception(f"Unable to retrieve file from selenium after {MAX_ATTEMPTS} attempts.", files)
 
     # On télécharge le fichier
     post_body = {"name": file}
@@ -125,10 +159,21 @@ def __driver_download_ics(datedebut, datefin, driver):
     __date_selector(datefin, inputs[1], driver)
 
     # on clique sur le bouton OK pour télécharger le fichier
-    popup.find_element(By.CLASS_NAME, "x-toolbar-ct").find_elements(By.TAG_NAME, "button")[0].click()
+    btn_ok = popup.find_element(By.CLASS_NAME, "x-toolbar-ct").find_elements(By.TAG_NAME, "button")[0]
 
-    # on attend que le fichier soit téléchargé
-    sleep(2)
+    # On remote le bouton jusqu'a trouver l'élément table
+    elem_up = btn_ok.find_element(By.XPATH, "./..")
+    while elem_up.tag_name != "table":
+        elem_up = elem_up.find_element(By.XPATH, "./..")
+
+    # on vérifie si le container du bouton contient la classe x-item-disabled
+    if "x-item-disabled" in elem_up.get_attribute("class"):
+        # le bouton est désactivé, il n'y a pas de fichier à télécharger
+        return False
+    else:
+        # le bouton est activé, on télécharge le fichier
+        btn_ok.click()
+        return True
 
 
 def get_ics_file(path, start_date, end_date):
@@ -178,24 +223,28 @@ def get_ics_file(path, start_date, end_date):
                 wait30s.until_not(lambda driver: driver.find_element(By.CLASS_NAME, "gwt-PopupPanel"))
 
                 # la ressource a été sélectionnée + chargée, on génère le lien de l'ics
-                __driver_download_ics(start_date, end_date, driver)
-
-                # on récupère le fichier
-                downloaded_filepath = __selenium_recupere_fichier(driver)
+                if __driver_download_ics(start_date, end_date, driver):
+                    # on récupère le fichier
+                    downloaded_filepath = __selenium_recupere_fichier(driver)
+                else:
+                    # pas de fichier à télécharger
+                    downloaded_filepath = None
 
                 # on ferme le navigateur
                 driver.quit()
 
                 return downloaded_filepath
     except Exception as e:
+        print("========================================================")
         print("Erreur lors de la récupération du fichier ics pour la ressource : " + path + " entre les dates " + start_date + " et " + end_date + " :")
-        print(e, file=sys.stderr)
-        driver.quit()
-
-
-if __name__ == '__main__':
-    os.environ["SELENIUM_HOST"] = "172.16.238.10"
-    os.environ["SELENIUM_PORT"] = "4444"
-    os.environ["ADE_URL"] = "https://ade-production.ut-capitole.fr/direct/index.jsp?showTree=true&showPianoDays=true&showPianoWeeks=true&days=0,1,2,3,4,&displayConfName=Web&login=anonymousiut&projectId=32"
-
-    print(get_ics_file("IUT Departement Informatique>BUT3 INFORMATIQUE RACDV>UBFBA3TP>B3INFOTPA2", "20231201", "20231231"))
+        print(traceback.format_exc())
+        print("========================================================")
+        try:
+            res_name = path.split(">")[-1]
+            filename = res_name + "_" + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".png"
+            driver.save_screenshot("/screenshots/" + filename)
+            print("Screenshot saved in /screenshots (file : " + filename + ")")
+            print("========================================================")
+            driver.quit()
+        except:
+            pass
