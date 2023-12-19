@@ -22,6 +22,11 @@ def mongo_connect():
 
 def parse_file(ics_path, group_name, start_date, end_date):
     ID_PROCESS = str(uuid4())
+    # On regarde si le groupe contient un nombre entre [] (ex : B3INFOTPA2[1])
+    # Si oui, on le retire
+    if "[" in group_name:
+        group_name = group_name[:group_name.index("[")]
+
     print(f"[ParseFile] Updating : {group_name} from {start_date} to {end_date} with id {ID_PROCESS}")
 
     inserted = 0
