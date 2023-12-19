@@ -96,7 +96,32 @@ def create_app():
 
             return mr.get_room_schedule(name, day, day)
 
+        @app.route("/teachers")
+        def get_teachers():
+            """
+            Get the list of teachers
+            :return: Json array representing the list of teachers
+            """
 
+            return mr.get_teachers_list()
+
+        @app.route("/promos")
+        def get_promos():
+            """
+            Get the list of promotions
+            :return: Json array representing the list of promotions
+            """
+
+            return mr.get_promo_list()
+
+        @app.route("/rooms")
+        def get_rooms():
+            """
+            Get the list of rooms
+            :return: Json array representing the list of rooms
+            """
+
+            return mr.get_rooms_list()
 
     return app
 

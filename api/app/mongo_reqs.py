@@ -2,7 +2,6 @@ import os
 from pymongo import MongoClient
 from datetime import datetime
 
-
 __db_cnx: None | MongoClient = None
 
 
@@ -27,7 +26,7 @@ def get_class_schedule(classname, start, end):
     :param end: Ending date (YYYYMMDD, inclusive)
     :return: json array containing the schedule
     """
-    
+
     db = __get_mongo()
     col = db["schedules"]
 
@@ -93,5 +92,145 @@ def get_room_schedule(name, start, end):
 
     print(req)
     rep = col.find(req)
+
+    return list(rep)
+
+
+def get_teachers_list():
+    """
+    Get the list of all teachers
+    :return: json array containing the list of teachers
+    """
+
+    db = __get_mongo()
+    col = db["schedules"]
+
+    aggregate = [
+    {
+        '$match': {
+            'teachers.0': {
+                '$exists': True
+            }
+        }
+    }, {
+        '$unset': [
+            'start', 'end', 'location', 'description', 'tp_groups', 'ade_groups', 'summary', '_id'
+        ]
+    }, {
+        '$unwind': {
+            'path': '$teachers'
+        }
+    }, {
+        '$group': {
+            '_id': '$teachers'
+        }
+    }, {
+        '$group': {
+            '_id': 'null',
+            'teachers': {
+                '$push': '$$ROOT._id'
+            }
+        }
+    }, {
+        '$project': {
+            '_id': 0
+        }
+    }
+]
+
+    rep = col.aggregate(aggregate)
+    rep = list(rep)[0]["teachers"]
+
+    return list(rep)
+
+
+def get_promo_list():
+    """
+    Get the list of all promotions
+    :return: json array containing the list of promotions
+    """
+
+    db = __get_mongo()
+    col = db["schedules"]
+
+    aggregate = [
+    {
+        '$match': {
+            'tp_groups.0': {
+                '$exists': True
+            }
+        }
+    }, {
+        '$unset': [
+            'start', 'end', 'location', 'description', 'teachers', 'ade_groups', 'summary', '_id'
+        ]
+    }, {
+        '$unwind': {
+            'path': '$tp_groups'
+        }
+    }, {
+        '$group': {
+            '_id': '$tp_groups'
+        }
+    }, {
+        '$group': {
+            '_id': 'null',
+            'tp_groups': {
+                '$push': '$$ROOT._id'
+            }
+        }
+    }, {
+        '$project': {
+            '_id': 0
+        }
+    }
+]
+
+    rep = col.aggregate(aggregate)
+    rep = list(rep)[0]["tp_groups"]
+
+    return list(rep)
+
+
+def get_rooms_list():
+    """
+    Get the list of all rooms
+    :return: json array containing the list of rooms
+    """
+
+    db = __get_mongo()
+    col = db["schedules"]
+
+    aggregate = [
+    {
+        '$match': {
+            'location': {
+                '$exists': True
+            }
+        }
+    }, {
+        '$unset': [
+            'start', 'end', 'teachers', 'description', 'tp_groups', 'ade_groups', 'summary', '_id'
+        ]
+    }, {
+        '$group': {
+            '_id': '$location'
+        }
+    }, {
+        '$group': {
+            '_id': 'null',
+            'location': {
+                '$push': '$$ROOT._id'
+            }
+        }
+    }, {
+        '$project': {
+            '_id': 0
+        }
+    }
+]
+
+    rep = col.aggregate(aggregate)
+    rep = list(rep)[0]["location"]
 
     return list(rep)
