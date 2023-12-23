@@ -69,7 +69,7 @@ def parse_file(ics_path, group_name, start_date, end_date):
             "ade_groups": groupes_ade,
             "tp_groups": [group_name],
             "description": e.description,
-            "location": e.location,
+            "location": [],
             "start": datetime.fromisoformat(e.begin.isoformat()),
             "end": datetime.fromisoformat(e.end.isoformat()),
             "_id": e.uid,
@@ -77,8 +77,11 @@ def parse_file(ics_path, group_name, start_date, end_date):
 
         # on check si l'élément location est vide
         # si vide on supprime
-        if elem["location"] == "":
+        if e.location == "":
             elem.pop("location")
+        else:
+            # On sépare les salles par des virgules et on supprime les espaces
+            elem["location"] = [loc.strip() for loc in e.location.split(",")]
 
         # check if event already exists
         find_elem = col.find_one({"_id": e.uid})

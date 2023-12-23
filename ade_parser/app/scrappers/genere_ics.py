@@ -1,5 +1,6 @@
 import datetime
 import re
+import time
 import traceback
 
 from time import sleep
@@ -43,16 +44,16 @@ def __date_selector(date, date_field, driver):
     # Coordonnées des mois dans le tableau (ligne, colonne)
     MONTH_COORDINATES = {
         "01": (0, 0),
-        "02": (0, 1),
-        "03": (1, 0),
-        "04": (1, 1),
-        "05": (2, 0),
-        "06": (2, 1),
-        "07": (3, 0),
-        "08": (3, 1),
-        "09": (4, 0),
-        "10": (4, 1),
-        "11": (5, 0),
+        "02": (1, 0),
+        "03": (2, 0),
+        "04": (3, 0),
+        "05": (4, 0),
+        "06": (5, 0),
+        "07": (0, 1),
+        "08": (1, 1),
+        "09": (2, 1),
+        "10": (3, 1),
+        "11": (4, 1),
         "12": (5, 1),
     }
 
@@ -158,7 +159,9 @@ def __driver_download_ics(datedebut, datefin, driver):
     __date_selector(datedebut, inputs[0], driver)
     __date_selector(datefin, inputs[1], driver)
 
-    # on clique sur le bouton OK pour télécharger le fichier
+    time.sleep(.5)
+
+    # on regarde si bouton disponible (= ressources à exporter)
     btn_ok = popup.find_element(By.CLASS_NAME, "x-toolbar-ct").find_elements(By.TAG_NAME, "button")[0]
 
     # On remote le bouton jusqu'a trouver l'élément table
