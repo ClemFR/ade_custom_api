@@ -60,7 +60,7 @@ def parse_file(ics_path, group_name, start_date, end_date):
         e.description = re.sub("\\(Exporté le:([0-9]{2}\\/){2}[0-9]{4} [0-9]{2}:[0-9]{2}\\)", "", e.description)
         e.description = e.description.strip()
 
-        profs = re.findall(r"([a-zA-Z\-]+ [a-zA-Z\-]+)", e.description)
+        profs = re.findall(r"^([a-zA-Z\-]+ [a-zA-Z\-]+)$", e.description)
         groupes_ade = re.findall(r"[a-zA-Z][0-9][a-zA-Z]*[0-9]*", e.description)
 
         elem = {
