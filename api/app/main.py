@@ -20,8 +20,8 @@ def create_app():
         signal.signal(signal.SIGINT, receive_signal)
         signal.signal(signal.SIGTERM, receive_signal)
 
-        @app.route("/admin/scrap_all")
-        def admin_launch_scrap_all():
+        @app.route("/admin/scrap_all/<start_date>/<end_date>")
+        def admin_launch_scrap_all(start_date, end_date):
             """
             Launch the scrap of all the promotions
             """
@@ -36,12 +36,8 @@ def create_app():
                 return "Wrong X-Admin-Key header", 401
 
             print("Launching scrap all")
-            start_date = datetime.now()
-            start_date = start_date - timedelta(days=start_date.weekday())
-            # Scrap for 4 weeks
-            end_date = start_date + timedelta(days=28)
             req.get("http://" + os.environ[
-                "PARSER_ADDRESS"] + f"/parse/ask/all/{start_date.strftime('%Y%m%d')}/{end_date.strftime('%Y%m%d')}")
+                "PARSER_ADDRESS"] + f"/parse/ask/all/{start_date}/{end_date}")
             return "", 200
 
         @app.route("/week/<promo_id>/<day>")
