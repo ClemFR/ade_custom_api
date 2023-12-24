@@ -21,7 +21,7 @@ def YYYYMMDD_to_datetime(date):
 def get_class_schedule(classname, start, end):
     """
     Get the schedule for the specified class.
-    :param classname: The class that request the schedule
+    :param classname: The class or list of classes that request the schedule
     :param start: Starting date (YYYYMMDD, inclusive)
     :param end: Ending date (YYYYMMDD, inclusive)
     :return: json array containing the schedule
@@ -30,8 +30,14 @@ def get_class_schedule(classname, start, end):
     db = __get_mongo()
     col = db["schedules"]
 
+    # On détecte si on a une liste de classes ou une seule
+    if "," in classname:
+        classname = classname.split(",")
+    else:
+        classname = [classname]
+
     req = {
-        "tp_groups": {"$in": [classname]},
+        "tp_groups": {"$in": classname},
         "$and": [
             {"start": {"$gte": YYYYMMDD_to_datetime(start)}},
             {"end": {"$lte": YYYYMMDD_to_datetime(end).replace(hour=23, minute=59, second=59)}}

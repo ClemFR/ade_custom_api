@@ -44,7 +44,7 @@ def create_app():
         def get_week(promo_id, day):
             """
             Get entire week for the specified promotion
-            :param promo_id: The promotion (Ex : B3INFOTPA2)
+            :param promo_id: The promotion (Ex : B3INFOTPA2) or a list of promotions (Ex : B3INFOTPA2,B3INFOTPA3)
             :param day: A day in the week (format AAAAMMJJ)
             :return: Json array representing the schedule.
             """
@@ -62,7 +62,7 @@ def create_app():
         def get_day(promo_id, day):
             """
             Get specific day for the specified promotion
-            :param promo_id: The promotion (Ex : B3INFOTPA2)
+            :param promo_id: The promotion (Ex : B3INFOTPA2) or a list of promotions (Ex : B3INFOTPA2,B3INFOTPA3)
             :param day: A day in the week (format AAAAMMJJ)
             :return: Json array representing the schedule.
             """
@@ -70,8 +70,8 @@ def create_app():
 
             return mr.get_class_schedule(promo_id, day, day)
 
-        @app.route("/teacher/<name>/<day>")
-        def get_teacher_schedule(name, day):
+        @app.route("/teacher/day/<name>/<day>")
+        def get_teacher_day(name, day):
             """
             Get the schedule for the specified teacher
             :param name: The name of the teacher to get the schedule
@@ -80,6 +80,25 @@ def create_app():
             """
 
             return mr.get_teacher_schedule(name, day, day)
+
+        @app.route("/teacher/week/<name>/<day>")
+        def get_teacher_week(name, day):
+            """
+            Get the schedule for the specified teacher
+            :param name: The name of the teacher to get the schedule
+            :param day: A day in the week (format AAAAMMJJ)
+            :return: Json array representing the schedule.
+            """
+
+            week_start = datetime.strptime(day, "%Y%m%d")
+            # Get week start to monday
+            week_start = week_start - timedelta(days=week_start.weekday())
+
+            week_end = week_start + timedelta(days=6)
+            print("Requete getWeek : " + str(name) + " --> " + str(week_start) + " --> " + str(week_end))
+
+            return mr.get_teacher_schedule(name, week_start.strftime("%Y%m%d"), week_end.strftime("%Y%m%d"))
+
 
         @app.route("/room/<name>/<day>")
         def get_room_schedule(name, day):
