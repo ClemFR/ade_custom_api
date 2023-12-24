@@ -190,7 +190,11 @@ def get_promo_list():
 ]
 
     rep = col.aggregate(aggregate)
-    rep = list(rep)[0]["tp_groups"]
+    rep = list(rep)
+
+    if len(rep) == 0:
+        return []
+    rep = rep[0]["tp_groups"]
 
     return list(rep)
 
@@ -238,6 +242,10 @@ def get_rooms_list():
 ]
 
     rep = col.aggregate(aggregate)
-    rep = list(rep)[0]["location"]
+    rep = list(rep)
+
+    if len(rep) == 0:
+        return []
+    rep = rep[0]["location"]
 
     return list(rep)
