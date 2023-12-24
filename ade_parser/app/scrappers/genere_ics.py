@@ -228,6 +228,7 @@ def get_ics_file(path, start_date, end_date):
                 # la ressource a été sélectionnée + chargée, on génère le lien de l'ics
                 if __driver_download_ics(start_date, end_date, driver):
                     # on récupère le fichier
+                    sleep(2)
                     downloaded_filepath = __selenium_recupere_fichier(driver)
                 else:
                     # pas de fichier à télécharger
