@@ -213,12 +213,16 @@ def get_rooms_list():
             'start', 'end', 'teachers', 'description', 'tp_groups', 'ade_groups', 'summary', '_id'
         ]
     }, {
+        '$unwind': {
+            'path': '$location'
+        }
+    }, {
         '$group': {
             '_id': '$location'
         }
     }, {
         '$group': {
-            '_id': 'null',
+            '_id': None,
             'location': {
                 '$push': '$$ROOT._id'
             }
