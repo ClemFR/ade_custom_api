@@ -139,7 +139,10 @@ def get_teachers_list():
 ]
 
     rep = col.aggregate(aggregate)
-    rep = list(rep)[0]["teachers"]
+    rep = list(rep)
+    if len(rep) == 0:
+        return []
+    rep = rep[0]["teachers"]
 
     return list(rep)
 
