@@ -47,7 +47,13 @@ def get_class_schedule(classname, start, end):
     print(req)
     rep = col.find(req)
 
-    return list(rep)
+    rep = list(rep)
+
+    for r in rep:
+        r["start"] = r["start"].isoformat()
+        r["end"] = r["end"].isoformat()
+
+    return rep
 
 
 def get_teacher_schedule(name, start, end):
@@ -73,7 +79,13 @@ def get_teacher_schedule(name, start, end):
     print(req)
     rep = col.find(req)
 
-    return list(rep)
+    rep = list(rep)
+
+    for r in rep:
+        r["start"] = r["start"].isoformat()
+        r["end"] = r["end"].isoformat()
+
+    return rep
 
 
 def get_room_schedule(name, start, end):
@@ -99,7 +111,13 @@ def get_room_schedule(name, start, end):
     print(req)
     rep = col.find(req)
 
-    return list(rep)
+    rep = list(rep)
+
+    for r in rep:
+        r["start"] = r["start"].isoformat()
+        r["end"] = r["end"].isoformat()
+
+    return rep
 
 
 def get_teachers_list():
