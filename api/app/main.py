@@ -237,7 +237,7 @@ def create_app():
             """
 
             msr.install(device_id)
-            return "", 200
+            return "{}", 200
 
     return app
 
