@@ -23,7 +23,8 @@ def create_tables():
     print("[INFO] Creating tables if not exists ...")
 
     cursor.execute("CREATE TABLE IF NOT EXISTS ressource (ID INT AUTO_INCREMENT PRIMARY KEY, nom VARCHAR(255), chemin VARCHAR(255))")
-    cursor.execute("CREATE TABLE IF NOT EXISTS utilisateurs (ID INT AUTO_INCREMENT PRIMARY KEY, nom VARCHAR(255), prenom VARCHAR(255), mail VARCHAR(255), login VARCHAR(255), mdp VARCHAR(64), admin BOOLEAN, favorite_ressource VARCHAR(255))")
+    cursor.execute("CREATE TABLE IF NOT EXISTS log (ID INT AUTO_INCREMENT PRIMARY KEY, date DATETIME, user VARCHAR(64), type VARCHAR(255), message TEXT, date_start DATETIME, date_end DATETIME)")
+    cursor.execute("CREATE TABLE IF NOT EXISTS install (ID INT AUTO_INCREMENT PRIMARY KEY, date DATETIME, user VARCHAR(64))")
 
     conn.commit()
 

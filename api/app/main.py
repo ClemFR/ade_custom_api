@@ -2,7 +2,8 @@ from flask import Flask, request
 from waitress import serve
 import signal
 import os
-import mongo_reqs as mr
+import mongo_reqs as mgr
+import mysql_reqs as msr
 from datetime import datetime, timedelta
 import requests as req
 
@@ -56,7 +57,15 @@ def create_app():
             week_end = week_start + timedelta(days=6)
             print("Requete getWeek : " + str(promo_id) + " --> " + str(week_start) + " --> " + str(week_end))
 
-            return mr.get_class_schedule(promo_id, week_start.strftime("%Y%m%d"), week_end.strftime("%Y%m%d"))
+            # getting the headers
+            headers = request.headers
+            # checking if the header is present
+            if "X-Device" in headers:
+                msr.log(headers["X-Device"], "promo_week", promo_id, week_start, week_end)
+            else:
+                msr.log("unknown", "promo_week", promo_id, week_start, week_end)
+
+            return mgr.get_class_schedule(promo_id, week_start.strftime("%Y%m%d"), week_end.strftime("%Y%m%d"))
 
         @app.route("/day/<promo_id>/<day>")
         def get_day(promo_id, day):
@@ -68,7 +77,15 @@ def create_app():
             """
             print("Requete getDay : " + str(promo_id) + " --> " + str(day))
 
-            return mr.get_class_schedule(promo_id, day, day)
+            # getting the headers
+            headers = request.headers
+            # checking if the header is present
+            if "X-Device" in headers:
+                msr.log(headers["X-Device"], "promo_day", promo_id, datetime.strptime(day, "%Y%m%d"))
+            else:
+                msr.log("unknown", "promo_day", promo_id, datetime.strptime(day, "%Y%m%d"))
+
+            return mgr.get_class_schedule(promo_id, day, day)
 
         @app.route("/teacher/day/<name>/<day>")
         def get_teacher_day(name, day):
@@ -79,7 +96,15 @@ def create_app():
             :return: Json array representing the schedule.
             """
 
-            return mr.get_teacher_schedule(name, day, day)
+            # getting the headers
+            headers = request.headers
+            # checking if the header is present
+            if "X-Device" in headers:
+                msr.log(headers["X-Device"], "teacher_day", name, datetime.strptime(day, "%Y%m%d"))
+            else:
+                msr.log("unknown", "teacher_day", name, datetime.strptime(day, "%Y%m%d"))
+
+            return mgr.get_teacher_schedule(name, day, day)
 
         @app.route("/teacher/week/<name>/<day>")
         def get_teacher_week(name, day):
@@ -97,7 +122,15 @@ def create_app():
             week_end = week_start + timedelta(days=6)
             print("Requete getWeek : " + str(name) + " --> " + str(week_start) + " --> " + str(week_end))
 
-            return mr.get_teacher_schedule(name, week_start.strftime("%Y%m%d"), week_end.strftime("%Y%m%d"))
+            # getting the headers
+            headers = request.headers
+            # checking if the header is present
+            if "X-Device" in headers:
+                msr.log(headers["X-Device"], "teacher_week", name, week_start, week_end)
+            else:
+                msr.log("unknown", "teacher_week", name, week_start, week_end)
+
+            return mgr.get_teacher_schedule(name, week_start.strftime("%Y%m%d"), week_end.strftime("%Y%m%d"))
 
 
         @app.route("/room/day/<name>/<day>")
@@ -109,7 +142,15 @@ def create_app():
             :return: Json array representing the schedule.
             """
 
-            return mr.get_room_schedule(name, day, day)
+            # getting the headers
+            headers = request.headers
+            # checking if the header is present
+            if "X-Device" in headers:
+                msr.log(headers["X-Device"], "room_day", name, datetime.strptime(day, "%Y%m%d"))
+            else:
+                msr.log("unknown", "room_day", name, datetime.strptime(day, "%Y%m%d"))
+
+            return mgr.get_room_schedule(name, day, day)
 
         @app.route("/room/week/<name>/<day>")
         def get_room_week(name, day):
@@ -127,7 +168,15 @@ def create_app():
             week_end = week_start + timedelta(days=6)
             print("Requete getWeek : " + str(name) + " --> " + str(week_start) + " --> " + str(week_end))
 
-            return mr.get_room_schedule(name, week_start.strftime("%Y%m%d"), week_end.strftime("%Y%m%d"))
+            # getting the headers
+            headers = request.headers
+            # checking if the header is present
+            if "X-Device" in headers:
+                msr.log(headers["X-Device"], "room_week", name, week_start, week_end)
+            else:
+                msr.log("unknown", "room_week", name, week_start, week_end)
+
+            return mgr.get_room_schedule(name, week_start.strftime("%Y%m%d"), week_end.strftime("%Y%m%d"))
 
         @app.route("/teachers")
         def get_teachers():
@@ -136,7 +185,15 @@ def create_app():
             :return: Json array representing the list of teachers
             """
 
-            return mr.get_teachers_list()
+            # getting the headers
+            headers = request.headers
+            # checking if the header is present
+            if "X-Device" in headers:
+                msr.log(headers["X-Device"], "list_teachers", "")
+            else:
+                msr.log("unknown", "list_teachers", "")
+
+            return mgr.get_teachers_list()
 
         @app.route("/promos")
         def get_promos():
@@ -145,7 +202,15 @@ def create_app():
             :return: Json array representing the list of promotions
             """
 
-            return mr.get_promo_list()
+            # getting the headers
+            headers = request.headers
+            # checking if the header is present
+            if "X-Device" in headers:
+                msr.log(headers["X-Device"], "list_promos", "")
+            else:
+                msr.log("unknown", "list_promos", "")
+
+            return mgr.get_promo_list()
 
         @app.route("/rooms")
         def get_rooms():
@@ -154,7 +219,25 @@ def create_app():
             :return: Json array representing the list of rooms
             """
 
-            return mr.get_rooms_list()
+            # getting the headers
+            headers = request.headers
+            # checking if the header is present
+            if "X-Device" in headers:
+                msr.log(headers["X-Device"], "list_rooms", "")
+            else:
+                msr.log("unknown", "list_rooms", "")
+
+            return mgr.get_rooms_list()
+
+        @app.route("/metrics/install/<device_id>")
+        def get_install_metrics(device_id):
+            """
+            Get the install metrics
+            :return: Json array representing the install metrics
+            """
+
+            msr.install(device_id)
+            return "", 200
 
     return app
 
