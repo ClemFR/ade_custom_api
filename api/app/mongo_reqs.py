@@ -8,7 +8,7 @@ __db_cnx: None | MongoClient = None
 def __get_mongo():
     global __db_cnx
     if __db_cnx is None:
-        client = MongoClient(os.environ["DATABASE_HOST"], int(os.environ["DATABASE_PORT"]))
+        client = MongoClient(os.environ.get("MONGO_SERVICE_NAME"), 27017)
 
         __db_cnx = client.ade
     return __db_cnx

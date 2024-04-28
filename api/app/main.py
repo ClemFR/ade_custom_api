@@ -244,20 +244,24 @@ def create_app():
 
 def validate_settings():
     SETTINGS_LIST = [
-        "PARSER_ADDRESS",
-        "ADMIN_KEY",
-        "DATABASE_HOST",
-        "DATABASE_PORT",
+        "MYSQL_SERVICE_NAME",
+        "MONGO_SERVICE_NAME",
+        "PARSER_SERVICE_NAME",
         "APP_MODE",
+        "ADMIN_KEY",
         "EXPOSE_PORT"
     ]
 
+    settings_ok = True
     for setting in SETTINGS_LIST:
         if setting not in os.environ and setting.strip() == "":
             print(f"Missing or empty setting {setting} in environment variables")
-            exit(1)
+            settings_ok = False
 
-    print("Settings validated !")
+    if settings_ok:
+        print("Settings validated !")
+    else:
+        exit(1)
 
 
 if __name__ == '__main__':

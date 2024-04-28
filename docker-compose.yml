@@ -1,33 +1,21 @@
 services:
   ade-seleniarm:
     image: seleniarm/standalone-firefox:latest
-    container_name: ade-seleniarm
     environment:
       - SE_NODE_MAX_SESSIONS=99
       - SE_NODE_SESSION_TIMEOUT=63072000 # 2 years
       - VNC_NO_PASSWORD=1
       - SE_OPTS=--enable-managed-downloads true
     shm_size: 2gb
-    networks:
-      custom_network:
-        ipv4_address: 172.16.238.10
 
   ade-mongodb:
     image: mongo:latest
-    container_name: ade-mongodb
-    networks:
-      custom_network:
-        ipv4_address: 172.16.238.12
     volumes:
       - ./docker_volumes/mongodb/db:/data/db
       - ./docker_volumes/mongodb/configdb:/data/configdb
 
   ade-mysql:
     image: mysql:latest
-    container_name: ade-mysql
-    networks:
-      custom_network:
-        ipv4_address: 172.16.238.13
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=true
       - MYSQL_DATABASE=ade
@@ -36,7 +24,6 @@ services:
 
   ade-python-parser:
     build: ade_parser/.
-    container_name: ade-python-parser
     depends_on:
       - ade-mongodb
       - ade-seleniarm
@@ -53,33 +40,13 @@ services:
       - stack.env
     volumes:
       - ./docker_volumes/screenshots:/screenshots
-    networks:
-        custom_network:
-            ipv4_address: 172.16.238.2
 
   ade-public-api:
     build: api/.
-    container_name: ade-public-api
     depends_on:
       - ade-mongodb
       - ade-mysql
     environment:
-      - DATABASE_HOST=172.16.238.12
-      - DATABASE_PORT=27017
-      - EXPOSE_PORT=5000
       - PARSER_ADDRESS=172.16.238.2:5000
-      - MYSQL_DATABASE_HOST=172.16.238.13
-      - MYSQL_DATABASE_PORT=3306
     env_file:
       - stack.env
-    networks:
-        custom_network:
-            ipv4_address: 172.16.238.3
-
-
-networks:
-  custom_network:
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.16.238.0/24
