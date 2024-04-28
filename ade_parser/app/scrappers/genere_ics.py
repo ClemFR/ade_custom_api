@@ -102,7 +102,7 @@ def __selenium_recupere_fichier(driver):
 
     end = False
 
-    file_list = f"http://{os.environ['SELENIUM_HOST']}:{os.environ['SELENIUM_PORT']}/session/{driver.session_id}/se/files"
+    file_list = f"http://{os.environ.get('SELENIUM_SERVICE_NAME')}:4444/session/{driver.session_id}/se/files"
     files = None
     file = ""
     while not end:

@@ -37,8 +37,8 @@ def create_app():
                 return "Wrong X-Admin-Key header", 401
 
             print("Launching scrap all")
-            req.get("http://" + os.environ[
-                "PARSER_ADDRESS"] + f"/parse/ask/all/{start_date}/{end_date}")
+            req.get("http://" + os.environ.get("PARSER_SERVICE_NAME")
+                    + f":5000/parse/ask/all/{start_date}/{end_date}")
             return "", 200
 
         @app.route("/week/<promo_id>/<day>")

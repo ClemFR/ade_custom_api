@@ -1,1 +1,4 @@
-IUT Departement Carrieres Juridiques>Préparat° concours Greffe>DPGRE1>DPGRE101
+IUT Departement Informatique>BUT1 INFORMATIQUE>UBFAA1TP>B1INFOTP01[1]
+IUT Departement Informatique>BUT1 INFORMATIQUE>UBFAA1TP>B1INFOTP02
+IUT Departement Informatique>BUT1 INFORMATIQUE>UBFAA1TP>B1INFOTP03[1]
+IUT Departement Informatique>BUT1 INFORMATIQUE>UBFAA1TP>B1INFOTP04[1]
