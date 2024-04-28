@@ -6,8 +6,8 @@ cnx = None
 
 def __get_cnx():
     return connector.connect(
-        host=os.environ["MYSQL_DATABASE_HOST"],
-        port=int(os.environ["MYSQL_DATABASE_PORT"]),
+        host=os.environ.get("MYSQL_SERVICE_NAME"),
+        port=3306,
         user="root",
         database="ade"
     )

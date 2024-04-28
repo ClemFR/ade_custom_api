@@ -15,7 +15,7 @@ def YYYYMMDD_to_datetime(date):
 def mongo_connect():
     global client
     if client is None:
-        client = MongoClient(os.environ["MONGO_DATABASE_HOST"], int(os.environ["MONGO_DATABASE_PORT"]))
+        client = MongoClient(os.environ.get("MONGO_SERVICE_NAME"), 27017)
     db = client.ade
     return db
 

@@ -66,19 +66,22 @@ def create_app():
 def validate_settings():
     SETTINGS_LIST = [
         "ADE_URL",
-        "SELENIUM_HOST",
-        "SELENIUM_PORT",
-        "MONGO_DATABASE_HOST",
-        "MONGO_DATABASE_PORT",
-        "MYSQL_DATABASE_HOST",
-        "MYSQL_DATABASE_PORT",
-        "EXPOSE_PORT"
+        "APP_MODE",
+        "SELENIUM_SERVICE_NAME",
+        "MONGO_SERVICE_NAME",
+        "MYSQL_SERVICE_NAME",
     ]
 
+    settings_ok = True
     for setting in SETTINGS_LIST:
-        if setting not in os.environ:
-            print(f"Missing setting {setting} in environment variables")
-            exit(1)
+        if setting not in os.environ and setting.strip() == "":
+            print(f"Missing or empty setting {setting} in environment variables")
+            settings_ok = False
+
+    if settings_ok:
+        print("Settings validated !")
+    else:
+        exit(1)
 
 
 if __name__ == '__main__':
@@ -88,4 +91,4 @@ if __name__ == '__main__':
     init_mysql.update_ressources_available()
 
     app = create_app()
-    app.run(host="0.0.0.0", port=int(os.environ["EXPOSE_PORT"]))
+    app.run(host="0.0.0.0", port=5000)

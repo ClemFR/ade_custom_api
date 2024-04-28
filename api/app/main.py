@@ -37,8 +37,8 @@ def create_app():
                 return "Wrong X-Admin-Key header", 401
 
             print("Launching scrap all")
-            req.get("http://" + os.environ[
-                "PARSER_ADDRESS"] + f"/parse/ask/all/{start_date}/{end_date}")
+            req.get("http://" + os.environ.get("PARSER_SERVICE_NAME")
+                    + f":5000/parse/ask/all/{start_date}/{end_date}")
             return "", 200
 
         @app.route("/week/<promo_id>/<day>")
@@ -244,20 +244,24 @@ def create_app():
 
 def validate_settings():
     SETTINGS_LIST = [
-        "PARSER_ADDRESS",
-        "ADMIN_KEY",
-        "DATABASE_HOST",
-        "DATABASE_PORT",
+        "MYSQL_SERVICE_NAME",
+        "MONGO_SERVICE_NAME",
+        "PARSER_SERVICE_NAME",
         "APP_MODE",
+        "ADMIN_KEY",
         "EXPOSE_PORT"
     ]
 
+    settings_ok = True
     for setting in SETTINGS_LIST:
         if setting not in os.environ and setting.strip() == "":
             print(f"Missing or empty setting {setting} in environment variables")
-            exit(1)
+            settings_ok = False
 
-    print("Settings validated !")
+    if settings_ok:
+        print("Settings validated !")
+    else:
+        exit(1)
 
 
 if __name__ == '__main__':

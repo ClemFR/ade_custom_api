@@ -44,7 +44,7 @@ def open_remote_browser():
     profile.set_preference("browser.download.manager.showAlertOnComplete", False)
     profile.set_preference("browser.download.manager.closeWhenDone", True)
 
-    remote_address = f"http://{os.environ['SELENIUM_HOST']}:{os.environ['SELENIUM_PORT']}"
+    remote_address = f"http://{os.environ.get('SELENIUM_SERVICE_NAME')}:4444"
 
     driver = webdriver.Remote(command_executor=remote_address, options=options)
     return driver

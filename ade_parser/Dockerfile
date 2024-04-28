@@ -9,14 +9,11 @@ COPY ./app/requirements.txt /app/requirements.txt
 WORKDIR /app
 RUN pip3 install -r requirements.txt
 
-ENV ADE_URL=""
-ENV SELENIUM_HOST=localhost
-ENV SELENIUM_PORT=4444
-ENV MONGO_DATABASE_HOST=localhost
-ENV MONGO_DATABASE_PORT=27017
-ENV MYSQL_DATABASE_HOST=localhost
-ENV MYSQL_DATABASE_PORT=3306
-ENV EXPOSE_PORT=5000
+# Emplacement réseau des conteneurs de la stack
+ENV MYSQL_SERVICE_NAME=ade-mysql
+ENV MONGO_SERVICE_NAME=ade-mongodb
+ENV PARSER_SERVICE_NAME=ade-python-parser
+ENV APP_MODE=prod
 
 # Fix des prints qui ne s'affichent pas correctement
 ENV PYTHONUNBUFFERED=1
